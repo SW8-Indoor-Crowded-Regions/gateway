@@ -1,5 +1,5 @@
 {
-  description = "Development environment for haskell.";
+  description = "Python environment for gateway";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -21,7 +21,7 @@
           mkShell {
             buildInputs = [
               python311
-              python311Packages.pip
+              pipreqs
               python311Packages.virtualenv
               python311Packages.fastapi
               python311Packages.uvicorn
