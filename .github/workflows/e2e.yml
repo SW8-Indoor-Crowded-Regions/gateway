@@ -14,8 +14,13 @@ jobs:
 
       - name: Clone `dev` branch of Sensor-Sim and Gateway
         run: |
-          git clone --branch dev https://github.com/SW8-Indoor-Crowded-Regions/sensor-sim.git sensor-sim
-          git clone --branch dev https://github.com/SW8-Indoor-Crowded-Regions/gateway.git gateway
+          git clone --branch dev https://github.com/SW8-Indoor-Crowded-Regions/sensor-sim.git ../sensor-sim
+          git clone --branch dev https://github.com/SW8-Indoor-Crowded-Regions/gateway.git ../gateway
+
+      - name: Debug Verify Folder Structure
+        run: |
+          echo "Current Directory: $(pwd)"
+          ls -lah ..
 
       - name: Make e2e script executable
         run: chmod +x e2e.sh
