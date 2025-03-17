@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Pathfinding Repo
+      - name: Checkout Gateway Repo
         uses: actions/checkout@v3
         with:
           ref: dev
@@ -17,16 +17,10 @@ jobs:
           git clone --branch dev https://github.com/SW8-Indoor-Crowded-Regions/sensor-sim.git ../sensor-sim
           git clone --branch dev https://github.com/SW8-Indoor-Crowded-Regions/pathfinding.git ../pathfinding
 
-      - name: Debug Verify Folder Structure
-        run: |
-          echo "Current Directory: $(pwd)"
-          ls -lah ..
-
       - name: Make e2e script executable
         run: |
-          cd /home/runner/work/gateway/gateway/gateway
-          ls -lah ..
           chmod +x e2e.sh
+          ls -lah
 
       - name: Run E2E Tests
         run: ./e2e.sh
