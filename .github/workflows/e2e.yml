@@ -17,14 +17,6 @@ jobs:
           git clone --branch dev https://github.com/SW8-Indoor-Crowded-Regions/sensor-sim.git ../sensor-sim
           git clone --branch dev https://github.com/SW8-Indoor-Crowded-Regions/pathfinding.git ../pathfinding
       
-      - name: Debug Verify Folder Structure
+      - name: Run E2E tests with all dependencies
         run: |
-          echo "Current Directory: $(pwd)"
-          ls -lah
-
-      - name: Debug Check if `e2e.sh` Exists
-        run: |
-          if [ -f ./e2e.sh ]; then echo "✅ e2e.sh found"; else echo "❌ e2e.sh is missing"; exit 1; fi
-      
-      - name: Run E2E Tests
-        run: bash ./e2e.sh
+          docker-compose -f docker-compose.yml -f docker-compose.e2e.yml up --exit-code-from test-runner     
