@@ -18,4 +18,4 @@ jobs:
           git clone --branch dev https://github.com/SW8-Indoor-Crowded-Regions/pathfinding.git ../pathfinding
 
       - name: Run E2E Tests
-        run: ./e2e.sh
+        run: bash ./e2e.sh
