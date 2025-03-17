@@ -12,15 +12,10 @@ jobs:
         with:
           ref: dev
       
-      - name: Ensure clean environment before cloning
-        run: |
-          rm -rf ../sensor-sim || true
-          rm -rf ../gateway || true
-      
       - name: Clone `dev` branch of Sensor-Sim and Gateway
         run: |
           git clone --branch dev https://github.com/SW8-Indoor-Crowded-Regions/sensor-sim.git ../sensor-sim
-          git clone --branch dev https://github.com/SW8-Indoor-Crowded-Regions/gateway.git ../gateway
+          git clone --branch dev https://github.com/SW8-Indoor-Crowded-Regions/pathfinding.git ../pathfinding
 
       - name: Debug Verify Folder Structure
         run: |
