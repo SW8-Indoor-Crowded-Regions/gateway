@@ -1,0 +1,48 @@
+services:
+  sensor-sim:
+    image: sensor-sim:latest
+    build:
+      context: ../sensor-sim
+      dockerfile: Dockerfile
+    networks:
+      - shared-network
+    env_file:
+      - ../sensor-sim/.env
+
+  pathfinding:
+    image: pathfinding:latest
+    build:
+      context: ../pathfinding
+      dockerfile: Dockerfile
+    networks:
+      - shared-network
+    env_file:
+      - ../pathfinding/.env
+
+  gateway:
+    image: gateway:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    networks:
+      - shared-network
+    env_file:
+      - ./.env
+      
+  test-runner:
+    image: test-runner:latest
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    networks:
+      - shared-network
+    depends_on:
+      - gateway
+      - sensor-sim
+      - pathfinding
+    command: ["python", "-m", "pytest", "--cov=app", "--cov-branch", "app/test/e2e"]
+
+networks:
+  shared-network:
+    name: shared-network
+    driver: bridge

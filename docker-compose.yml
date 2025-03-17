@@ -1,0 +1,15 @@
+services:
+  gateway:
+    image: gateway:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    networks:
+      - shared-network
+
+networks:
+  shared-network:
+    name: shared-network
+    driver: bridge

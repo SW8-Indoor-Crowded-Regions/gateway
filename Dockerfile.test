@@ -1,0 +1,23 @@
+# Use Python 3.11 slim image
+FROM python:3.11.9-slim
+
+# Install system dependencies (git for cloning dependencies if needed)
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+
+# Set working directory to root where `pytest.ini` and `requirements.txt` are
+WORKDIR /
+
+# Copy only the requirements file first (for better Docker caching)
+COPY requirements.txt .
+
+# Install dependencies (including pytest and pytest-cov)
+RUN pip install --no-cache-dir -r requirements.txt pytest pytest-cov
+
+# Now move to /app where application code will be copied
+WORKDIR /app
+
+# Copy everything from the root into /app
+COPY . /app
+
+# Run only the E2E tests
+CMD ["python", "-m", "pytest", "--cov=app", "--cov-branch", "app/test/e2e"]

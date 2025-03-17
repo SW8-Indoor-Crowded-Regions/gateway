@@ -1,0 +1,24 @@
+name: Run E2E Tests
+
+on: [push, pull_request]
+
+jobs:
+  e2e-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Pathfinding Repo
+        uses: actions/checkout@v3
+        with:
+          ref: dev
+
+      - name: Clone `dev` branch of Sensor-Sim and Gateway
+        run: |
+          git clone --branch dev https://github.com/your-org/sensor-sim.git sensor-sim
+          git clone --branch dev https://github.com/your-org/gateway.git gateway
+
+      - name: Make e2e script executable
+        run: chmod +x e2e.sh
+
+      - name: Run E2E Tests
+        run: ./e2e.sh
