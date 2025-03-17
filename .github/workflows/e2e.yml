@@ -23,7 +23,9 @@ jobs:
           ls -lah ..
 
       - name: Make e2e script executable
-        run: chmod +x e2e.sh
+        run: |
+          cd /home/runner/work/gateway/
+          chmod +x e2e.sh
 
       - name: Run E2E Tests
         run: ./e2e.sh
