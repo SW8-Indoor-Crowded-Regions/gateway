@@ -7,7 +7,7 @@ services:
     networks:
       - shared-network
     env_file:
-      - ../sensor-sim/.env
+      - ./.env
 
   pathfinding:
     image: pathfinding:latest
@@ -17,7 +17,7 @@ services:
     networks:
       - shared-network
     env_file:
-      - ../pathfinding/.env
+      - ./.env
 
   gateway:
     image: gateway:latest
