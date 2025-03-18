@@ -30,9 +30,11 @@ jobs:
           echo "Current Directory: $(pwd)"
           ls -lah  # ✅ Check if `docker-compose.yml` exists
 
+      - name: Create `.env` from GitHub Secrets (For CI Only)
+        run: |
+          echo "MONGO_URL=${{ secrets.MONGO_URL }}" >> .env
+          echo "KAFKA_BROKER=${{ secrets.KAFKA_BROKER }}" >> .env
+
       - name: Run E2E tests with all dependencies
         run: |
           docker-compose -f docker-compose.yml -f docker-compose.e2e.yml up --exit-code-from test-runner
-        env: 
-          MONGO_URL: ${{ secrets.MONGO_URL }}
-          KAFKA_BROKER: ${{ secrets.KAFKA_BROKER }}
