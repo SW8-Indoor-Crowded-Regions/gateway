@@ -20,4 +20,4 @@ WORKDIR /app
 COPY . /app
 
 # Run only the E2E tests
-CMD ["python", "-m", "pytest", "--cov=app", "--cov-branch", "app/test/e2e"]
+CMD ["python", "-m", "pytest", "--cov=app", "--cov-branch", "test/e2e"]
