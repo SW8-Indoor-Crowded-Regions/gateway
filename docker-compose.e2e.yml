@@ -7,6 +7,7 @@ services:
       - "zookeeper_data:/bitnami"
     environment:
       - ALLOW_ANONYMOUS_LOGIN=yes
+      - ZOO_LOG_LEVEL=ERROR
     networks:
       - shared-network
 
@@ -15,7 +16,7 @@ services:
     ports:
       - "9092:9092"
     volumes:
-      - "kafka_data:/bitnami"
+      - "./log4j.properties:/opt/bitnami/kafka/config/log4j.properties"
     environment:
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
       - ALLOW_PLAINTEXT_LISTENER=yes
@@ -23,6 +24,9 @@ services:
       - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:9093,EXTERNAL://:9092
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=CLIENT
       - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_LOG4J_LOGGERS=kafka.controller=ERROR,kafka.producer.async.DefaultEventHandler=ERROR,state.change.logger=ERROR
+      - KAFKA_CFG_LOG_LEVEL=ERROR
+      - KAFKA_LOG4J_ROOT_LOGLEVEL=ERROR
     depends_on:
       - zookeeper
     networks:
@@ -37,30 +41,27 @@ services:
       - "8002:8002"
     networks:
       - shared-network
-    env_file:
-      - ./.env
     depends_on:
       - kafka
       - zookeeper
     environment:
-      - KAFKA_BROKER=localhost:9092
+      - KAFKA_BROKER={KAFKA_BROKER}
+      - MONGO_URL=${MONGO_URL}
 
-  pathfinding:
-    image: pathfinding:latest
-    build:
-      context: ../pathfinding
-      dockerfile: Dockerfile
-    ports:
-      - "8001:8001"
-    networks:
-      - shared-network
-    depends_on:
-      - kafka
-      - zookeeper
-    env_file:
-      - ./.env
-    environment:
-      - KAFKA_BROKER=localhost:9092
+  # pathfinding:
+  #   image: pathfinding:latest
+  #   build:
+  #     context: ../pathfinding
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "8001:8001"
+  #   networks:
+  #     - shared-network
+  #   depends_on:
+  #     - kafka
+  #     - zookeeper
+  #   environment:
+  #     - KAFKA_BROKER=localhost:9092
 
   gateway:
     image: gateway:latest
@@ -71,11 +72,9 @@ services:
       - shared-network
     ports:
       - "8000:8000"
-    env_file:
-      - ./.env
     depends_on:
       - sensor-sim
-      - pathfinding
+ #     - pathfinding
 
   test-runner:
     image: test-runner:latest
@@ -87,7 +86,7 @@ services:
     depends_on:
       - gateway
       - sensor-sim
-      - pathfinding
+  #    - pathfinding
     command: ["python", "-m", "pytest", "--cov=app", "--cov-branch", "app/test/e2e"]
 
 volumes:
