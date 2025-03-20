@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
 from pydantic import BaseModel
 
 # from app.utils.forwarder import forward_request
