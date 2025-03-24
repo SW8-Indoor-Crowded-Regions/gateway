@@ -9,7 +9,7 @@ class SMKRequest(BaseModel):
 
 @router.get("/test")
 async def smk_home():
-    return {"message": "SMK API is working!"}
+    return {"message": "Gateway to SMK API is working!"}
 
 @router.get("/search-artwork")
 async def search_artwork(keys: str):
@@ -29,14 +29,39 @@ async def search_artwork(keys: str):
             response = await client.get("https://api.smk.dk/api/v1/art/search", params=params)
             response.raise_for_status()
             data = response.json()
-            
+            print(data)
+            filtered_data = data.get("autocomplete")
+            return filtered_data
+
+    except httpx.HTTPStatusError as e:
+        raise HTTPException(status_code=e.response.status_code, detail=f"SMK API error: {e.response.text}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@router.get("/get-artwork")
+async def get_artwork(keys: str):
+    """
+    Calls the external SMK API to get an artworks.
+    
+    
+    Parameters:
+        - `keys`: Search term (e.g., "minimumsbetragtning")
+    """
+    params = {
+        "keys": keys,
+    }
+
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get("https://api.smk.dk/api/v1/art/search", params=params)
+            response.raise_for_status()
+            data = response.json()
             filtered_data = [
                 {
                     "id": data.get("items", [{}])[0].get("id"),
                     "room": data.get("items", [{}])[0].get("current_location_name"),
                 }
             ]
-            
             return filtered_data
 
     except httpx.HTTPStatusError as e:
