@@ -26,7 +26,7 @@ async def post_route_test(request: BaseModel):
     return {"message": "Received test data."}
 
 # New endpoint to handle the complete flow.
-@router.post("/fastest_path")
+@router.post("/fastest-path")
 async def get_fastest_path(request: PathfindingRequest):
     # Guard clause: ensure source and target are non-empty.
     if not request.source.strip() or not request.target.strip():
@@ -42,20 +42,26 @@ async def get_fastest_path(request: PathfindingRequest):
             detail="Failed to retrieve room data from sensor simulation service"
         ) from e
 
-    # Guard clause: validate room_data is present and of expected type.
-    if not room_data or not isinstance(room_data, (list, dict)):
+    # Guard clause: validate room_data is present and extract the rooms list.
+    if isinstance(room_data, dict) and "rooms" in room_data:
+        room_list = room_data["rooms"]
+    elif isinstance(room_data, list):
+        room_list = room_data
+    else:
         raise HTTPException(
             status_code=500, 
             detail="Invalid or empty room data received from sensor simulation service"
         )
-
-    # Step 2: Prepare payload for the pathfinding service, including the room data.
+    
+    # Step 2: Prepare payload for the pathfinding service.
+    # Notice the changed keys to match the expected schema.
     payload = {
-        "source": request.source,
-        "target": request.target,
-        "rooms": room_data
+        "source_sensor": request.source,
+        "target_sensor": request.target,
+        "rooms": room_list
     }
-    pathfinding_url = f"{SERVICES['pathfinding']}/fastest_path"
+
+    pathfinding_url = f"{SERVICES['pathfinding']}/pathfinding/fastest-path"
     try:
         # Step 3: Send POST request to the pathfinding service.
         path_response = await forward_request(pathfinding_url, "POST", body=payload)
