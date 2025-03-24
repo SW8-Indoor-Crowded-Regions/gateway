@@ -1,4 +1,50 @@
 services:
+  sensor-sim:
+    image: sensor-sim:latest
+    build:
+      context: ../sensor-sim
+      dockerfile: Dockerfile
+    ports:
+      - "8002:8002"
+    networks:
+      - shared-network
+    depends_on:
+      kafka:
+        condition: service_healthy
+      zookeeper:
+        condition: service_healthy
+    environment:
+      - KAFKA_BROKER=localhost:9092
+      - MONGO_URL=
+
+  kafka:
+    image: docker.io/bitnami/kafka:2.8
+    ports:
+      - "9093:9093"
+    volumes:
+      - "kafka_data:/bitnami"
+    environment:
+      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181  # Default Zookeeper connection
+      - ALLOW_PLAINTEXT_LISTENER=yes
+      - KAFKA_CFG_LISTENERS=INTERNAL://0.0.0.0:9093,EXTERNAL://0.0.0.0:9092
+      - KAFKA_CFG_ADVERTISED_LISTENERS=INTERNAL://kafka:9093,EXTERNAL://localhost:9092
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL=INTERNAL:PLAINTEXT,EXTERNAL:PLAINTEXT
+      - KAFKA_CFG_LISTENER_NAME=INTERNAL
+      - KAFKA_CFG_LISTENER_NAME=EXTERNAL
+      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
+    depends_on:
+      zookeeper:
+        condition: service_healthy
+    networks:
+      - shared-network
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-verions", "--bootstrap-server", "localhost:9093"]
+      interval: 10s
+      retries: 5
+      start_period: 20s
+      timeout: 5s
+
   zookeeper:
     image: docker.io/bitnami/zookeeper:3.8
     ports:
@@ -10,58 +56,32 @@ services:
       - ZOO_LOG_LEVEL=ERROR
     networks:
       - shared-network
+    healthcheck:
+      test: ["CMD", "nc", "-z", "localhost", "2181"]
+      interval: 10s
+      retries: 5
+      start_period: 20s
+      timeout: 5s
 
-  kafka:
-    image: docker.io/bitnami/kafka:2.8
-    ports:
-      - "9092:9092"
-    volumes:
-      - "./log4j.properties:/opt/bitnami/kafka/config/log4j.properties"
-    environment:
-      - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181
-      - ALLOW_PLAINTEXT_LISTENER=yes
-      - KAFKA_CFG_LISTENERS=CLIENT://0.0.0.0:9093,EXTERNAL://:9092
-      - KAFKA_CFG_ADVERTISED_LISTENERS=CLIENT://kafka:9093,EXTERNAL://:9092
-      - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=CLIENT
-      - KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP=CLIENT:PLAINTEXT,EXTERNAL:PLAINTEXT
-      - KAFKA_LOG4J_LOGGERS=kafka.controller=ERROR,kafka.producer.async.DefaultEventHandler=ERROR,state.change.logger=ERROR
-      - KAFKA_CFG_LOG_LEVEL=ERROR
-      - KAFKA_LOG4J_ROOT_LOGLEVEL=ERROR
-    depends_on:
-      - zookeeper
-    networks:
-      - shared-network
 
-  sensor-sim:
-    image: sensor-sim:latest
-    build:
-      context: ../sensor-sim
-      dockerfile: Dockerfile
-    ports:
-      - "8002:8002"
-    networks:
-      - shared-network
-    depends_on:
-      - kafka
-      - zookeeper
-    environment:
-      - KAFKA_BROKER={KAFKA_BROKER}
-      - MONGO_URL=${MONGO_URL}
-
-  # pathfinding:
-  #   image: pathfinding:latest
-  #   build:
-  #     context: ../pathfinding
-  #     dockerfile: Dockerfile
-  #   ports:
-  #     - "8001:8001"
-  #   networks:
-  #     - shared-network
-  #   depends_on:
-  #     - kafka
-  #     - zookeeper
-  #   environment:
-  #     - KAFKA_BROKER=localhost:9092
+  #pathfinding:
+  #  image: pathfinding:latest
+  #  build:
+  #    context: ../pathfinding
+  #    dockerfile: Dockerfile
+  #  ports:
+  #    - "8001:8001"
+  #  networks:
+  #    - shared-network
+  #  depends_on:
+  #    kafka:
+  #      condition: service_healthy
+  #    zookeeper:
+  #      condition: service_healthy
+  #  env_file:
+  #    - ./.env
+  #  environment:
+  #    - KAFKA_BROKER=${KAFKA_BROKER}
 
   gateway:
     image: gateway:latest
@@ -74,8 +94,8 @@ services:
       - "8000:8000"
     depends_on:
       - sensor-sim
- #     - pathfinding
-
+  #    - pathfinding
+      
   test-runner:
     image: test-runner:latest
     build:
