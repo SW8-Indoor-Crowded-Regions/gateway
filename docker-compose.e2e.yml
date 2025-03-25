@@ -9,20 +9,20 @@ services:
     networks:
       - shared-network
     depends_on:
-      kafka:
-        condition: service_healthy
-      zookeeper:
-        condition: service_healthy
+      - kafka
+      - zookeeper
+    env_file:
+      - ../sensor-sim/.env
     environment:
       - KAFKA_BROKER=localhost:9092
-      - MONGO_URL=
 
   kafka:
     image: docker.io/bitnami/kafka:2.8
     ports:
       - "9093:9093"
     volumes:
-      - "kafka_data:/bitnami"
+      - "kafka_data:/bitnami"      
+      - ./log4j.properties:/opt/bitnami/kafka/config/log4j.properties:ro
     environment:
       - KAFKA_CFG_ZOOKEEPER_CONNECT=zookeeper:2181  # Default Zookeeper connection
       - ALLOW_PLAINTEXT_LISTENER=yes
@@ -34,16 +34,9 @@ services:
       - KAFKA_CFG_LISTENER_NAME=EXTERNAL
       - KAFKA_CFG_INTER_BROKER_LISTENER_NAME=INTERNAL
     depends_on:
-      zookeeper:
-        condition: service_healthy
+      - zookeeper
     networks:
       - shared-network
-    healthcheck:
-      test: ["CMD", "kafka-broker-api-verions", "--bootstrap-server", "localhost:9093"]
-      interval: 10s
-      retries: 5
-      start_period: 20s
-      timeout: 5s
 
   zookeeper:
     image: docker.io/bitnami/zookeeper:3.8
@@ -56,32 +49,22 @@ services:
       - ZOO_LOG_LEVEL=ERROR
     networks:
       - shared-network
-    healthcheck:
-      test: ["CMD", "nc", "-z", "localhost", "2181"]
-      interval: 10s
-      retries: 5
-      start_period: 20s
-      timeout: 5s
 
 
-  #pathfinding:
-  #  image: pathfinding:latest
-  #  build:
-  #    context: ../pathfinding
-  #    dockerfile: Dockerfile
-  #  ports:
-  #    - "8001:8001"
-  #  networks:
-  #    - shared-network
-  #  depends_on:
-  #    kafka:
-  #      condition: service_healthy
-  #    zookeeper:
-  #      condition: service_healthy
-  #  env_file:
-  #    - ./.env
-  #  environment:
-  #    - KAFKA_BROKER=${KAFKA_BROKER}
+  pathfinding:
+    image: pathfinding:latest
+    build:
+      context: ../pathfinding
+      dockerfile: Dockerfile
+    ports:
+      - "8001:8001"
+    networks:
+      - shared-network
+    depends_on:
+      - kafka
+      - zookeeper
+    environment:
+      - KAFKA_BROKER=localhost:9092
 
   gateway:
     image: gateway:latest
@@ -94,7 +77,7 @@ services:
       - "8000:8000"
     depends_on:
       - sensor-sim
-  #    - pathfinding
+      - pathfinding
       
   test-runner:
     image: test-runner:latest
@@ -106,7 +89,7 @@ services:
     depends_on:
       - gateway
       - sensor-sim
-  #    - pathfinding
+      - pathfinding
     command: ["python", "-m", "pytest", "--cov=app", "--cov-branch", "app/test/e2e"]
 
 volumes:
