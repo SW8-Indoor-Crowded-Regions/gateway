@@ -1,6 +1,3 @@
-from fastapi.middleware.cors import CORSMiddleware
-
-
 # Allowed CORS origins
 ALLOWED_ORIGINS = [
     "*",  # Disables all CORS protection

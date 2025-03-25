@@ -1,0 +1,13 @@
+[run]
+omit =
+    app/__init__.py
+    app/test/*
+    app/main.py
+    app/config.py
+[report]
+show_missing = true
+precision = 2
+exclude_lines = 
+    pragma: no cover
+    if TYPE_CHECKING:
+	 if __name__ == '__main__':
