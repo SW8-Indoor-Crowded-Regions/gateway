@@ -2,10 +2,9 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-# Import the router from your file (adjust the import path as needed)
-from app.routes.gateway import router
-# forward_request will be monkeypatched in some tests
-#from app.utils.forwarder import forward_request  
+# Import the router from the new structure.
+from app.routes.api_routes import router
+# forward_request will be monkeypatched in some tests.
 
 app = FastAPI()
 app.include_router(router)
@@ -45,7 +44,7 @@ def test_blank_target():
 def test_sensor_sim_failure(monkeypatch):
     async def fake_forward_request(*args, **kwargs):
         raise Exception("Sensor service error")
-    monkeypatch.setattr("app.routes.gateway.forward_request", fake_forward_request)
+    monkeypatch.setattr("app.services.pathfinding_service.forward_request", fake_forward_request)
 
     payload = {"source": "RoomA", "target": "RoomB"}
     response = client.post("/fastest-path", json=payload)
@@ -56,7 +55,7 @@ def test_sensor_sim_failure(monkeypatch):
 def test_invalid_room_data(monkeypatch):
     async def fake_forward_request(*args, **kwargs):
         return "invalid data"
-    monkeypatch.setattr("app.routes.gateway.forward_request", fake_forward_request)
+    monkeypatch.setattr("app.services.pathfinding_service.forward_request", fake_forward_request)
 
     payload = {"source": "RoomA", "target": "RoomB"}
     response = client.post("/fastest-path", json=payload)
@@ -74,7 +73,7 @@ def test_pathfinding_failure(monkeypatch):
             return {"rooms": [{"id": "room1"}, {"id": "room2"}]}
         elif call_count == 2:
             raise Exception("Pathfinding error")
-    monkeypatch.setattr("app.routes.gateway.forward_request", fake_forward_request)
+    monkeypatch.setattr("app.services.pathfinding_service.forward_request", fake_forward_request)
 
     payload = {"source": "RoomA", "target": "RoomB"}
     response = client.post("/fastest-path", json=payload)
@@ -93,7 +92,7 @@ def test_invalid_pathfinding_response(monkeypatch):
         elif call_count == 2:
             # Return an invalid response.
             return None
-    monkeypatch.setattr("app.routes.gateway.forward_request", fake_forward_request)
+    monkeypatch.setattr("app.services.pathfinding_service.forward_request", fake_forward_request)
 
     payload = {"source": "RoomA", "target": "RoomB"}
     response = client.post("/fastest-path", json=payload)
@@ -112,7 +111,7 @@ def test_success(monkeypatch):
         elif call_count == 2:
             # Return a valid pathfinding response.
             return {"path": ["RoomA", "room1", "RoomB"], "cost": 10}
-    monkeypatch.setattr("app.routes.gateway.forward_request", fake_forward_request)
+    monkeypatch.setattr("app.services.pathfinding_service.forward_request", fake_forward_request)
 
     payload = {"source": "RoomA", "target": "RoomB"}
     response = client.post("/fastest-path", json=payload)

@@ -1,8 +1,6 @@
-from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+from fastapi import HTTPException
 from app.utils.forwarder import forward_request
-
-router = APIRouter()
+from app.schemas.pathfinding_schema import PathfindingRequest
 
 # Define the URLs for each service.
 SERVICES = {
@@ -10,29 +8,12 @@ SERVICES = {
     "pathfinding": "http://localhost:8001"      # Pathfinding service
 }
 
-# Model for the initial request from the frontend.
-class PathfindingRequest(BaseModel):
-    source: str
-    target: str
-
-# Existing test endpoints
-@router.get("/test")
-async def get_route_test():
-    return {"message": "API is working!"}
-
-@router.post("/test")
-async def post_route_test(request: BaseModel):
-    # Example test endpoint, adjust as needed.
-    return {"message": "Received test data."}
-
-# New endpoint to handle the complete flow.
-@router.post("/fastest-path")
-async def get_fastest_path(request: PathfindingRequest):
-    # Guard clause: ensure source and target are non-empty.
+async def calculate_fastest_path(request: PathfindingRequest) -> dict:
+    # Validate input: ensure source and target are non-empty.
     if not request.source.strip() or not request.target.strip():
         raise HTTPException(status_code=400, detail="Both 'source' and 'target' must be non-empty strings.")
     
-    # Step 1: Query sensor simulation service for all room data.
+    # Step 1: Query sensor simulation service for room data.
     sensor_sim_url = f"{SERVICES['sensor_sim']}/rooms"
     try:
         room_data = await forward_request(sensor_sim_url, "GET")
@@ -42,7 +23,7 @@ async def get_fastest_path(request: PathfindingRequest):
             detail="Failed to retrieve room data from sensor simulation service"
         ) from e
 
-    # Guard clause: validate room_data is present and extract the rooms list.
+    # Validate room data structure.
     if isinstance(room_data, dict) and "rooms" in room_data:
         room_list = room_data["rooms"]
     elif isinstance(room_data, list):
@@ -54,16 +35,15 @@ async def get_fastest_path(request: PathfindingRequest):
         )
     
     # Step 2: Prepare payload for the pathfinding service.
-    # Notice the changed keys to match the expected schema.
     payload = {
         "source_sensor": request.source,
         "target_sensor": request.target,
         "rooms": room_list
     }
 
+    # Step 3: Send POST request to the pathfinding service.
     pathfinding_url = f"{SERVICES['pathfinding']}/pathfinding/fastest-path"
     try:
-        # Step 3: Send POST request to the pathfinding service.
         path_response = await forward_request(pathfinding_url, "POST", body=payload)
     except Exception as e:
         raise HTTPException(
@@ -71,12 +51,11 @@ async def get_fastest_path(request: PathfindingRequest):
             detail="Failed to calculate fastest path from pathfinding service"
         ) from e
 
-    # Guard clause: ensure that the response from pathfinding is valid.
+    # Validate the response from pathfinding.
     if not path_response or not isinstance(path_response, dict):
         raise HTTPException(
             status_code=500,
             detail="Invalid response from pathfinding service"
         )
 
-    # Return the result from the pathfinding service to the frontend.
     return path_response
