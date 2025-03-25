@@ -7,11 +7,6 @@ router = APIRouter(prefix="/smk")
 class SMKRequest(BaseModel):
     content: str
 
-@router.get("/test")
-async def smk_home():
-    return {"message": "Gateway to SMK API is working!"}
-
-@router.get("/search-artwork")
 async def search_artwork(keys: str):
     """
     Calls the external SMK API to search for artworks.
@@ -38,7 +33,6 @@ async def search_artwork(keys: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
-@router.get("/get-artwork")
 async def get_artwork(keys: str):
     """
     Calls the external SMK API to get an artworks.
