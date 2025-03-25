@@ -69,7 +69,7 @@ nix develop
 
 ### 🔹 **For Development**
 ```bash
-uvicorn app:app --reload
+uvicorn app.main:app --reload
 ```
 
 ### 🔹 **For Production (4 Workers)**
