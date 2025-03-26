@@ -1,20 +1,25 @@
 from fastapi import HTTPException
 from app.utils.forwarder import forward_request
 from app.schemas.pathfinding_schema import PathfindingRequest
+import os
+from dotenv import load_dotenv
 
-# Define the URLs for each service.
-SERVICES = {
-    "sensor_sim": "http://localhost:8002",    # Data processing service (returns room data)
-    "pathfinding": "http://localhost:8001"      # Pathfinding service
-}
+load_dotenv()
+SENSOR_SIM_PATH = os.getenv("SENSOR_SIM")
+if SENSOR_SIM_PATH is None:
+    raise RuntimeError("SENSOR_SIM not found in environment variables")
+
+PATHFINDING_PATH = os.getenv("PATHFINDING")
+if PATHFINDING_PATH is None:
+    raise RuntimeError("PATHFINDING not found in environment variables")
 
 async def calculate_fastest_path(request: PathfindingRequest) -> dict:
     # Validate input: ensure source and target are non-empty.
     if not request.source.strip() or not request.target.strip():
         raise HTTPException(status_code=400, detail="Both 'source' and 'target' must be non-empty strings.")
     
-    # Step 1: Query sensor simulation service for room data.
-    sensor_sim_url = f"{SERVICES['sensor_sim']}/rooms"
+    # Query sensor simulation service for room data.
+    sensor_sim_url = f"{SENSOR_SIM_PATH}/rooms"
     try:
         room_data = await forward_request(sensor_sim_url, "GET")
     except Exception as e:
@@ -34,15 +39,15 @@ async def calculate_fastest_path(request: PathfindingRequest) -> dict:
             detail="Invalid or empty room data received from sensor simulation service"
         )
     
-    # Step 2: Prepare payload for the pathfinding service.
+    # Prepare payload for the pathfinding service.
     payload = {
         "source_sensor": request.source,
         "target_sensor": request.target,
         "rooms": room_list
     }
 
-    # Step 3: Send POST request to the pathfinding service.
-    pathfinding_url = f"{SERVICES['pathfinding']}/pathfinding/fastest-path"
+    # Send POST request to the pathfinding service.
+    pathfinding_url = f"{PATHFINDING_PATH}/pathfinding/fastest-path"
     try:
         path_response = await forward_request(pathfinding_url, "POST", body=payload)
     except Exception as e:
