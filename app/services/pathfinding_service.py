@@ -5,11 +5,11 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-SENSOR_SIM_PATH = os.getenv("SENSOR_SIM")
+SENSOR_SIM_PATH = os.getenv("SENSOR_SIM", "http://localhost:8002")
 if SENSOR_SIM_PATH is None:
     raise RuntimeError("SENSOR_SIM not found in environment variables")
 
-PATHFINDING_PATH = os.getenv("PATHFINDING")
+PATHFINDING_PATH = os.getenv("PATHFINDING", "http://localhost:8001")
 if PATHFINDING_PATH is None:
     raise RuntimeError("PATHFINDING not found in environment variables")
 
