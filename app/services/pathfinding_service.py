@@ -1,20 +1,27 @@
 from fastapi import HTTPException
 from app.utils.forwarder import forward_request
-from app.schemas.pathfinding_schema import PathfindingRequest
+from app.schemas.pathfinding_schema import path_finding_request, fastest_path_type
+from app.schemas.room_response_schema import room_data_type
+import os
+from dotenv import load_dotenv
 
-# Define the URLs for each service.
-SERVICES = {
-    "sensor_sim": "http://localhost:8002",    # Data processing service (returns room data)
-    "pathfinding": "http://localhost:8001"      # Pathfinding service
-}
+load_dotenv()
+SENSOR_SIM_PATH = os.getenv("SENSOR_SIM", "http://localhost:8002")
+if SENSOR_SIM_PATH is None:
+    raise RuntimeError("SENSOR_SIM not found in environment variables")
 
-async def calculate_fastest_path(request: PathfindingRequest) -> dict:
+PATHFINDING_PATH = os.getenv("PATHFINDING", "http://localhost:8001")
+if PATHFINDING_PATH is None:
+    raise RuntimeError("PATHFINDING not found in environment variables")
+
+async def calculate_fastest_path(request: path_finding_request) -> fastest_path_type:
     # Validate input: ensure source and target are non-empty.
     if not request.source.strip() or not request.target.strip():
         raise HTTPException(status_code=400, detail="Both 'source' and 'target' must be non-empty strings.")
     
-    # Step 1: Query sensor simulation service for room data.
-    sensor_sim_url = f"{SERVICES['sensor_sim']}/rooms"
+    # Query sensor simulation service for room data.
+    sensor_sim_url = f"{SENSOR_SIM_PATH}/rooms"
+
     try:
         room_data = await forward_request(sensor_sim_url, "GET")
     except Exception as e:
@@ -22,27 +29,29 @@ async def calculate_fastest_path(request: PathfindingRequest) -> dict:
             status_code=500, 
             detail="Failed to retrieve room data from sensor simulation service"
         ) from e
-
-    # Validate room data structure.
-    if isinstance(room_data, dict) and "rooms" in room_data:
-        room_list = room_data["rooms"]
-    elif isinstance(room_data, list):
-        room_list = room_data
-    else:
+    
+    try:
+        validated_room_data = room_data_type.model_validate(room_data)
+    except Exception as e:
         raise HTTPException(
             status_code=500, 
             detail="Invalid or empty room data received from sensor simulation service"
-        )
+        ) from e
+
+    room_list = validated_room_data.rooms
+   
     
-    # Step 2: Prepare payload for the pathfinding service.
+    # Prepare payload for the pathfinding service.
     payload = {
         "source_sensor": request.source,
         "target_sensor": request.target,
         "rooms": room_list
     }
 
-    # Step 3: Send POST request to the pathfinding service.
-    pathfinding_url = f"{SERVICES['pathfinding']}/pathfinding/fastest-path"
+    # Send POST request to the pathfinding service.
+    pathfinding_url = f"{PATHFINDING_PATH}/pathfinding/fastest-path"
+
+    
     try:
         path_response = await forward_request(pathfinding_url, "POST", body=payload)
     except Exception as e:
@@ -51,11 +60,12 @@ async def calculate_fastest_path(request: PathfindingRequest) -> dict:
             detail="Failed to calculate fastest path from pathfinding service"
         ) from e
 
-    # Validate the response from pathfinding.
-    if not path_response or not isinstance(path_response, dict):
+    try:
+        path_response = fastest_path_type.model_validate(path_response)
+    except Exception as e:
         raise HTTPException(
             status_code=500,
             detail="Invalid response from pathfinding service"
-        )
+        ) from e
 
     return path_response
