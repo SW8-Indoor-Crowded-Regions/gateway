@@ -27,7 +27,6 @@ async def search_artwork(keys: str):
             response = await client.get("https://api.smk.dk/api/v1/art/search", params=params)
             response.raise_for_status()
             data = response.json()
-            print(data)
             filtered_data = data.get("autocomplete")
             return filtered_data
 
@@ -36,7 +35,7 @@ async def search_artwork(keys: str):
 
 async def get_artwork(keys: str):
     """
-    Calls the external SMK API to get an artworks.
+    Calls the external SMK API to get an artwork.
     
     
     Parameters:
