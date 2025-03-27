@@ -106,16 +106,17 @@ def test_success(monkeypatch):
         nonlocal call_count
         call_count += 1
         if call_count == 1:
-            # Return room data as a list.
-            return [{"id": "room1"}, {"id": "room2"}]
+            # Return room data as a dictionary with a "rooms" key.
+            return {"rooms": [{"id": "room1"}, {"id": "room2"}]}
         elif call_count == 2:
-            # Return a valid pathfinding response.
-            return {"path": ["RoomA", "room1", "RoomB"], "cost": 10}
+            # Return a valid pathfinding response with the expected keys.
+            return {"fastest_path": ["RoomA", "room1", "RoomB"], "distance": 10}
     monkeypatch.setattr("app.services.pathfinding_service.forward_request", fake_forward_request)
 
     payload = {"source": "RoomA", "target": "RoomB"}
     response = client.post("/fastest-path", json=payload)
     assert response.status_code == 200
     json_response = response.json()
-    assert "path" in json_response
-    assert "cost" in json_response
+    assert "fastest_path" in json_response
+    assert "distance" in json_response
+
