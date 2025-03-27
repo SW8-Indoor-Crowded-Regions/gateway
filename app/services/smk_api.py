@@ -15,6 +15,9 @@ async def search_artwork(keys: str):
     Parameters:
         - `keys`: Search term (e.g., "minimumsbetragtning")
     """
+    if not keys.strip():
+        raise HTTPException(status_code=400, detail="The 'keys' parameter must be a non-empty string.")
+    
     params = {
         "keys": keys,
     }
@@ -28,8 +31,6 @@ async def search_artwork(keys: str):
             filtered_data = data.get("autocomplete")
             return filtered_data
 
-    except httpx.HTTPStatusError as e:
-        raise HTTPException(status_code=e.response.status_code, detail=f"SMK API error: {e.response.text}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
@@ -41,6 +42,9 @@ async def get_artwork(keys: str):
     Parameters:
         - `keys`: Search term (e.g., "minimumsbetragtning")
     """
+    if not keys.strip():
+        raise HTTPException(status_code=400, detail="The 'keys' parameter must be a non-empty string.")
+    
     params = {
         "keys": keys,
     }
@@ -58,7 +62,5 @@ async def get_artwork(keys: str):
             ]
             return filtered_data
 
-    except httpx.HTTPStatusError as e:
-        raise HTTPException(status_code=e.response.status_code, detail=f"SMK API error: {e.response.text}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
