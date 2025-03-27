@@ -18,10 +18,24 @@ async def post_route_test(request: BaseModel):
 async def get_fastest_path(request: path_finding_request):
     return await calculate_fastest_path(request)
 
-@router.get("/search-artwork")
+@router.get(
+    path="/search-artwork", 
+    tags=['SMK API'],
+    description='Get a list of suggested artworks based on query.',
+    response_model=list[str],
+    response_description='Artwork names corresponding most to query.',
+    summary='Get a list of artwork names corresponding most to given query.',
+)
 async def smk_search_artwork(keys: str):
     return await search_artwork(keys)
 
-@router.get("/get-artwork")
+@router.get(
+    path="/get-artwork",
+    tags=['SMK API'],
+    description='Get information about a specified artwork from SMK API.',
+    response_model=list[dict],
+    response_description='Returns information about the artwork.',
+    summary='Get artwork information.',
+)
 async def smk_get_artwork(keys: str):
     return await get_artwork(keys)
