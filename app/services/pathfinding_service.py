@@ -8,11 +8,11 @@ from dotenv import load_dotenv
 load_dotenv()
 SENSOR_SIM_PATH = os.getenv('SENSOR_SIM', 'http://localhost:8002')
 if SENSOR_SIM_PATH is None:
-	raise RuntimeError('SENSOR_SIM not found in environment variables')
+	raise RuntimeError('SENSOR_SIM not found in environment variables') # pragma: no cover
 
 PATHFINDING_PATH = os.getenv('PATHFINDING', 'http://localhost:8001')
 if PATHFINDING_PATH is None:
-	raise RuntimeError('PATHFINDING not found in environment variables')
+	raise RuntimeError('PATHFINDING not found in environment variables') # pragma: no cover
 
 
 async def calculate_fastest_path(request: path_finding_request) -> fastest_path_type:
@@ -40,9 +40,6 @@ async def calculate_fastest_path(request: path_finding_request) -> fastest_path_
 			detail='Invalid or empty room data received from sensor simulation service',
 		) from e
 
- 
-	print(f"Room list: {room_data['rooms'][:3]}")
-
 	# Prepare payload for the pathfinding service.
 	payload = {'source_sensor': request.source, 'target_sensor': request.target, 'rooms': room_data['rooms']}
 
@@ -59,7 +56,6 @@ async def calculate_fastest_path(request: path_finding_request) -> fastest_path_
 	try:
 		path_response = fastest_path_type.model_validate(path_response)
 	except Exception as e:
-		print(f"Pathfinding response: {path_response}")
 		raise HTTPException(
 			status_code=status, detail=path_response.get('detail', 'Invalid pathfinding response')
 		) from e
