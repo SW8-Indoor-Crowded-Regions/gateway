@@ -1,7 +1,7 @@
 from fastapi import HTTPException
 from app.utils.forwarder import forward_request
 from app.schemas.pathfinding_schema import path_finding_request, fastest_path_type
-from app.schemas.room_response_schema import room_data_type
+from app.schemas.room_response_schema import RoomListModel as room_data_type
 import os
 from dotenv import load_dotenv
 
