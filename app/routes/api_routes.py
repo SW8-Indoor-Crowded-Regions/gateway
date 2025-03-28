@@ -1,5 +1,4 @@
 from fastapi import APIRouter
-from pydantic import BaseModel
 from app.schemas.pathfinding_schema import path_finding_request
 from app.services.pathfinding_service import calculate_fastest_path
 from app.routes.rooms.room_routes import router as room_router
