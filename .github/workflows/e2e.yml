@@ -1,6 +1,10 @@
 name: Run E2E Tests
 
-on: [push, pull_request]
+on:
+   push:
+     branches: [main, dev, test]
+   pull_request:
+     types: [opened, synchronize, reopened]
 
 jobs:
   e2e-test:
