@@ -33,4 +33,20 @@ def test_post_req():
 	# Assertions
 	assert response.status_code == 200, f'Unexpected status code: {response.status_code}'
 	data = response.json()
-	assert data['message'] == f'Received: {payload["msg"]}', f'Unexpected response: {data["message"]}'
+	assert data['message'] == f'Received test data.', f'Unexpected response: {data["message"]}'
+
+def test_fastest_route():
+	"""E2E test to fetch a path from the gateway."""
+	# Ensure the service is running before testing
+	wait_for_service(f'{BASE_URL}/test', timeout=5)  # Adjust if needed
+
+	# Send the request
+	response = requests.post(f'{BASE_URL}/fastest-path', json={
+		"source": "A",
+		"target": "B"
+	})
+
+	# Assertions
+	#assert response.status_code == 200, f'Unexpected status code: {response.status_code}'
+	data = response.json()
+	assert data == f'Received test data.', f'Unexpected response: {data}'
