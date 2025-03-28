@@ -1,0 +1,26 @@
+# Use Python 3.11 slim image
+FROM python:3.11.9-slim
+
+# Install system dependencies (git for cloning dependencies if needed)
+RUN apt-get update && \
+    apt-get install -y git curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# Download wait-for-it.sh
+RUN curl -sSL https://github.com/vishnubob/wait-for-it/raw/master/wait-for-it.sh -o /wait-for-it.sh && \
+    chmod +x /wait-for-it.sh
+
+# Set working directory to root where `pytest.ini` and `requirements.txt` are
+WORKDIR /app
+
+# Copy only the requirements file first (for better Docker caching)
+COPY requirements.txt .
+
+# Install dependencies (including pytest and pytest-cov)
+RUN pip install --no-cache-dir -r requirements.txt pytest pytest-cov
+
+# Copy everything from the root into /app
+COPY . /app
+
+# Run only the E2E tests
+CMD ["/wait-for-it.sh", "sensor-sim:8002", "--timeout=60", "--", "python", "-m", "pytest", "--cov=app", "--cov-branch", "test/e2e"]
