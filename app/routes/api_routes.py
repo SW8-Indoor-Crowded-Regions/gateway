@@ -6,7 +6,13 @@ from app.services.smk_api import search_artwork, get_artwork
 
 router = APIRouter()
 
-@router.get("/test")
+@router.get("/test",
+            summary="Test if the API is working",
+				description="A simple test route to check if the API is working.",
+				tags=["test"],
+				response_description="A simple message to confirm the API is working.",
+				response_model=dict
+    		)
 async def get_route_test():
     return {"message": "API is working!"}
 
