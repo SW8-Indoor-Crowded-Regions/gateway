@@ -16,24 +16,24 @@ if PATHFINDING_PATH is None:
 
 async def get_all_rooms() -> RoomListModel:
 	res, status = await forward_request(SENSOR_SIM_PATH + '/rooms', 'GET')
-	try: 
+	try:
 		RoomListModel.model_validate(res, strict=True)
 		return res
 	except Exception:
 		raise HTTPException(
 			status_code=status,
-			detail=res.get('detail', 'Invalid room data received from sensor simulation service')
+			detail=res.get('detail', 'Invalid room data received from sensor simulation service'),
 		)
 
 
 async def get_room_by_id(room_id: str) -> RoomModel:
 	res, status = await forward_request(SENSOR_SIM_PATH + f'/rooms/{room_id}', 'GET')
- 
-	try: 
+
+	try:
 		RoomModel.model_validate(res, strict=True)
 		return res
 	except Exception:
 		raise HTTPException(
 			status_code=status,
-			detail=res.get('detail', 'Invalid room data received from sensor simulation service')
+			detail=res.get('detail', 'Invalid room data received from sensor simulation service'),
 		)
