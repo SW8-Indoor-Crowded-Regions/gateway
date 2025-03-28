@@ -13,6 +13,12 @@ services:
       - zookeeper
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      interval: 10s
+      retries: 5
+      start_period: 10s
+      timeout: 5s
 
   kafka:
     image: docker.io/bitnami/kafka:2.8
@@ -74,6 +80,9 @@ services:
     depends_on:
       - sensor-sim
       - pathfinding
+    environment:
+      - SENSOR_SIM=http://sensor-sim:8002
+      - PATHFINDING=http://pathfinding:8001
       
   test-runner:
     image: test-runner:latest
@@ -83,10 +92,10 @@ services:
     networks:
       - shared-network
     depends_on:
-      - gateway
+      - gateway   
       - sensor-sim
       - pathfinding
-    command: ["python", "-m", "pytest", "--cov=app", "--cov-branch", "app/test/e2e"]
+    command: ["/wait-for-it.sh", "sensor-sim:8002", "--timeout=60", "--", "python", "-m", "pytest", "--cov=app", "--cov-branch", "app/test/e2e"]
 
 volumes:
   zookeeper_data:
