@@ -36,8 +36,6 @@ async def test_get_all_rooms(mock_env, mock_forward_request, mock_room):
 	mock_response = {'rooms': [mock_room, mock_room]}
 	mock_forward_request.return_value = (mock_response, 200)
 
-	assert RoomListModel.model_validate(mock_response) is not None
-	print(mock_response)
 	result = await get_all_rooms()
 
 	assert RoomListModel.model_validate(result) == RoomListModel.model_validate(mock_response)
