@@ -33,7 +33,7 @@ def test_post_req():
 	# Assertions
 	assert response.status_code == 200, f'Unexpected status code: {response.status_code}'
 	data = response.json()
-	assert data['message'] == f'Received test data.', f'Unexpected response: {data["message"]}'
+	assert data['message'] == 'Received test data.', f'Unexpected response: {data["message"]}'
 
 def test_fastest_route():
 	"""E2E test to fetch a path from the gateway."""
@@ -49,4 +49,4 @@ def test_fastest_route():
 	# Assertions
 	#assert response.status_code == 200, f'Unexpected status code: {response.status_code}'
 	data = response.json()
-	assert data == f'Received test data.', f'Unexpected response: {data}'
+	assert data == 'Received test data.', f'Unexpected response: {data}'
