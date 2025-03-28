@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.schemas.room_response_schema import RoomModel, RoomListModel
-from app.services.rooms.rooms_controllers import get_all_rooms, get_room_by_id
+from app.services.rooms_controllers import get_all_rooms, get_room_by_id
 from app.utils.responses.rooms import get_room_by_id_responses, get_rooms_responses
 
 router = APIRouter()

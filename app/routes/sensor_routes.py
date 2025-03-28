@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.schemas.sensor_response_schemas import SensorModel, SensorListModel
-from app.services.sensors.sensor_controllers import get_all_sensors, get_sensor_by_id
+from app.services.sensor_controllers import get_all_sensors, get_sensor_by_id
 from app.utils.responses.sensors import get_sensors_responses, get_sensor_by_id_responses
 
 router = APIRouter()

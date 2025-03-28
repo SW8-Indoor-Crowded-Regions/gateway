@@ -1,8 +1,8 @@
 from fastapi import APIRouter
 from app.schemas.pathfinding_schema import path_finding_request
 from app.services.pathfinding_service import calculate_fastest_path
-from app.routes.rooms.room_routes import router as room_router
-from app.routes.sensors.sensor_routes import router as sensor_router
+from app.routes.room_routes import router as room_router
+from app.routes.sensor_routes import router as sensor_router
 from app.routes.tests.test_routes import router as test_router
 
 router = APIRouter()
