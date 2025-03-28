@@ -19,7 +19,7 @@ async def get_all_rooms() -> RoomListModel:
 	try: 
 		RoomListModel.model_validate(res, strict=True)
 		return res
-	except:
+	except Exception:
 		raise HTTPException(
 			status_code=status,
 			detail=res.get('detail', 'Invalid room data received from sensor simulation service')
@@ -32,7 +32,7 @@ async def get_room_by_id(room_id: str) -> RoomModel:
 	try: 
 		RoomModel.model_validate(res, strict=True)
 		return res
-	except:
+	except Exception:
 		raise HTTPException(
 			status_code=status,
 			detail=res.get('detail', 'Invalid room data received from sensor simulation service')
