@@ -6,6 +6,7 @@ from app.utils.forwarder import forward_request
 class FakeResponse:
     def __init__(self, json_data):
         self._json = json_data
+        self.status_code = 200
 
     def json(self):
         return self._json
@@ -43,7 +44,7 @@ async def test_forward_request_success(monkeypatch):
     # Override httpx.AsyncClient with our fake success client.
     monkeypatch.setattr(httpx, "AsyncClient", lambda: FakeAsyncClient())
     
-    result = await forward_request(
+    result, status = await forward_request(
         "http://example.com", "GET", params={"a": 1}, body={"key": "value"}
     )
     assert result == {
@@ -52,6 +53,7 @@ async def test_forward_request_success(monkeypatch):
         "params": {"a": 1},
         "body": {"key": "value"}
     }
+    assert status == 200
 
 @pytest.mark.asyncio
 async def test_forward_request_error(monkeypatch):
