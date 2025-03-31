@@ -5,9 +5,7 @@ import pytest
 from fastapi import HTTPException
 
 # Import the models to create valid requests/responses.
-from app.schemas.pathfinding_schema import path_finding_request, fastest_path_type
-from app.schemas.room_response_schema import room_data_type
-from app.schemas.sensor_response_schema import sensor_data_type
+from app.schemas.pathfinding_schema import path_finding_request
 
 # Import the function under test.
 from app.services import pathfinding_service
