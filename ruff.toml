@@ -1,0 +1,6 @@
+line-length = 100
+exclude = ["app/not_used"]
+[format]
+quote-style = "single"
+indent-style = "tab"
+docstring-code-format = true

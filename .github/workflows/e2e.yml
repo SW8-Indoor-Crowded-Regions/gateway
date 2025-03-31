@@ -1,0 +1,48 @@
+name: Run E2E Tests
+
+on:
+   push:
+     branches: [main, dev, test]
+   pull_request:
+     types: [opened, synchronize, reopened]
+
+jobs:
+  e2e-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Gateway Repo
+        uses: actions/checkout@v3
+
+      - name: Install Docker Compose
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y docker-compose
+
+      - name: Verify Docker & Docker Compose Installation
+        run: |
+          docker --version
+          docker-compose --version
+      
+      - name: Clone `dev` branch of Sensor-Sim and Gateway
+        run: |
+          git clone --branch dev https://github.com/SW8-Indoor-Crowded-Regions/sensor-sim.git ../sensor-sim
+          git clone --branch dev https://github.com/SW8-Indoor-Crowded-Regions/pathfinding.git ../pathfinding
+     
+      - name: Print Current Directory and List Files
+        run: |
+          echo "Current Directory: $(pwd)"
+          ls -lah  # ✅ Check if `docker-compose.yml` exists
+
+      - name: Create `.env` from GitHub Secrets (For CI Only)
+        run: |
+          echo "MONGO_URL=${{ secrets.MONGO_URL }}" >> .env
+          echo "KAFKA_BROKER=${{ secrets.KAFKA_BROKER }}" >> .env
+      
+      - name: Run E2E Tests
+        run: |
+          docker-compose -f docker-compose.yml -f docker-compose.e2e.yml up --build --exit-code-from test-runner
+
+      - name: Ensure Cleanup After Tests
+        run: |
+          docker-compose -f docker-compose.yml -f docker-compose.e2e.yml down
