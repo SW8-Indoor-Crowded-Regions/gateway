@@ -1,122 +1,181 @@
-#import pytest
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
+import os
+import importlib
+import asyncio
+import pytest
+from fastapi import HTTPException
 
-# Import the router from the new structure.
-from app.routes.api_routes import router
-# forward_request will be monkeypatched in some tests.
+# Import the models to create valid requests/responses.
+from app.schemas.pathfinding_schema import path_finding_request, fastest_path_type
+from app.schemas.room_response_schema import room_data_type
+from app.schemas.sensor_response_schema import sensor_data_type
 
-app = FastAPI()
-app.include_router(router)
-client = TestClient(app)
+# Import the function under test.
+from app.services import pathfinding_service
 
-# Tests for the "/test" endpoints
+# Dummy valid data for each service call.
+VALID_ROOM_DATA = {"rooms": [{"id": "room1"}, {"id": "room2"}]}
+VALID_SENSOR_DATA = {"sensors": [{"id": "sensor1"}, {"id": "sensor2"}]}
+VALID_FASTEST_PATH_RESPONSE = {"fastest_path": ["RoomA", "room1", "RoomB"], "distance": 10}
 
-def test_get_route_test():
-    response = client.get("/test")
-    assert response.status_code == 200
-    assert response.json() == {"message": "API is working!"}
+# Helper to run async functions.
+def run_async(coro):
+    return asyncio.run(coro)
 
-def test_post_route_test():
-    # Since the POST endpoint accepts any valid JSON as a BaseModel,
-    # sending an empty JSON object should be sufficient.
-    response = client.post("/test", json={})
-    assert response.status_code == 200
-    assert response.json() == {"message": "Received test data."}
+# -------------------------------
+# Tests for calculate_fastest_path
+# -------------------------------
 
-# Tests for the "/fastest-path" endpoint guard clauses
+@pytest.mark.asyncio
+async def test_blank_input():
+    # Test that blank source (or target) triggers 400 error.
+    request = path_finding_request(source="   ", target="RoomA")
+    with pytest.raises(HTTPException) as exc_info:
+        await pathfinding_service.calculate_fastest_path(request)
+    assert exc_info.value.status_code == 400
+    assert "non-empty" in exc_info.value.detail
 
-# Test: Blank source value should trigger 400 error.
-def test_blank_source():
-    payload = {"source": "   ", "target": "RoomA"}
-    response = client.post("/fastest-path", json=payload)
-    assert response.status_code == 400
-    assert "non-empty" in response.json()["detail"]
+@pytest.mark.asyncio
+async def test_room_data_forward_exception(monkeypatch):
+    # Simulate exception during room data retrieval (first forward_request call).
+    async def fake_forward_request(url, method, body=None, params=None):
+        raise Exception("Room data fetch error")
+    monkeypatch.setattr(pathfinding_service, "forward_request", fake_forward_request)
+    request = path_finding_request(source="RoomA", target="RoomB")
+    with pytest.raises(HTTPException) as exc_info:
+        await pathfinding_service.calculate_fastest_path(request)
+    assert exc_info.value.status_code == 500
+    assert "Failed to retrieve room data" in exc_info.value.detail
 
-# Test: Blank target value should trigger 400 error.
-def test_blank_target():
-    payload = {"source": "RoomA", "target": "   "}
-    response = client.post("/fastest-path", json=payload)
-    assert response.status_code == 400
-    assert "non-empty" in response.json()["detail"]
-
-# Test: Simulate sensor simulation service failure (first forward_request call fails).
-def test_sensor_sim_failure(monkeypatch):
-    async def fake_forward_request(*args, **kwargs):
-        raise Exception("Sensor service error")
-    monkeypatch.setattr("app.services.pathfinding_service.forward_request", fake_forward_request)
-
-    payload = {"source": "RoomA", "target": "RoomB"}
-    response = client.post("/fastest-path", json=payload)
-    assert response.status_code == 500
-    assert "Failed to retrieve room data" in response.json()["detail"]
-
-# Test: When sensor service returns invalid room data (not a dict with 'rooms' key or a list).
-def test_invalid_room_data(monkeypatch):
-    async def fake_forward_request(*args, **kwargs):
+@pytest.mark.asyncio
+async def test_invalid_room_data(monkeypatch):
+    # Simulate invalid room data causing model validation failure.
+    async def fake_forward_request(url, method, body=None, params=None):
         return "invalid data"
-    monkeypatch.setattr("app.services.pathfinding_service.forward_request", fake_forward_request)
+    monkeypatch.setattr(pathfinding_service, "forward_request", fake_forward_request)
+    request = path_finding_request(source="RoomA", target="RoomB")
+    with pytest.raises(HTTPException) as exc_info:
+        await pathfinding_service.calculate_fastest_path(request)
+    assert exc_info.value.status_code == 500
+    assert "Invalid or empty room data" in exc_info.value.detail
 
-    payload = {"source": "RoomA", "target": "RoomB"}
-    response = client.post("/fastest-path", json=payload)
-    assert response.status_code == 500
-    assert "Invalid or empty room data" in response.json()["detail"]
-
-# Test: Simulate failure from the pathfinding service (second forward_request call fails).
-def test_pathfinding_failure(monkeypatch):
+@pytest.mark.asyncio
+async def test_sensor_data_forward_exception(monkeypatch):
+    # Simulate exception during sensor data retrieval (second forward_request call).
     call_count = 0
     async def fake_forward_request(url, method, body=None, params=None):
         nonlocal call_count
         call_count += 1
         if call_count == 1:
-            # First call: sensor simulation returns valid room data.
-            return {"rooms": [{"id": "room1"}, {"id": "room2"}]}
+            return VALID_ROOM_DATA
         elif call_count == 2:
-            raise Exception("Pathfinding error")
-    monkeypatch.setattr("app.services.pathfinding_service.forward_request", fake_forward_request)
+            raise Exception("Sensor data fetch error")
+    monkeypatch.setattr(pathfinding_service, "forward_request", fake_forward_request)
+    request = path_finding_request(source="RoomA", target="RoomB")
+    with pytest.raises(HTTPException) as exc_info:
+        await pathfinding_service.calculate_fastest_path(request)
+    assert exc_info.value.status_code == 500
+    assert "Failed to retrieve sensor data" in exc_info.value.detail
 
-    payload = {"source": "RoomA", "target": "RoomB"}
-    response = client.post("/fastest-path", json=payload)
-    assert response.status_code == 500
-    assert "Failed to calculate fastest path" in response.json()["detail"]
-
-# Test: When pathfinding returns an invalid response (not a dict).
-def test_invalid_pathfinding_response(monkeypatch):
+@pytest.mark.asyncio
+async def test_invalid_sensor_data(monkeypatch):
+    # Simulate invalid sensor data causing model validation failure.
     call_count = 0
     async def fake_forward_request(url, method, body=None, params=None):
         nonlocal call_count
         call_count += 1
         if call_count == 1:
-            # Return valid room data.
-            return {"rooms": [{"id": "room1"}, {"id": "room2"}]}
+            return VALID_ROOM_DATA
         elif call_count == 2:
-            # Return an invalid response.
+            return "invalid sensor data"
+    monkeypatch.setattr(pathfinding_service, "forward_request", fake_forward_request)
+    request = path_finding_request(source="RoomA", target="RoomB")
+    with pytest.raises(HTTPException) as exc_info:
+        await pathfinding_service.calculate_fastest_path(request)
+    assert exc_info.value.status_code == 500
+    assert "Invalid or empty sensor data" in exc_info.value.detail
+
+@pytest.mark.asyncio
+async def test_pathfinding_forward_exception(monkeypatch):
+    # Simulate exception during the pathfinding service call (third forward_request call).
+    call_count = 0
+    async def fake_forward_request(url, method, body=None, params=None):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            return VALID_ROOM_DATA
+        elif call_count == 2:
+            return VALID_SENSOR_DATA
+        elif call_count == 3:
+            raise Exception("Pathfinding service error")
+    monkeypatch.setattr(pathfinding_service, "forward_request", fake_forward_request)
+    request = path_finding_request(source="RoomA", target="RoomB")
+    with pytest.raises(HTTPException) as exc_info:
+        await pathfinding_service.calculate_fastest_path(request)
+    assert exc_info.value.status_code == 500
+    assert "Failed to calculate fastest path" in exc_info.value.detail
+
+@pytest.mark.asyncio
+async def test_invalid_pathfinding_response(monkeypatch):
+    # Simulate invalid pathfinding response causing model validation failure.
+    call_count = 0
+    async def fake_forward_request(url, method, body=None, params=None):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            return VALID_ROOM_DATA
+        elif call_count == 2:
+            return VALID_SENSOR_DATA
+        elif call_count == 3:
+            return "invalid path response"
+    monkeypatch.setattr(pathfinding_service, "forward_request", fake_forward_request)
+    request = path_finding_request(source="RoomA", target="RoomB")
+    with pytest.raises(HTTPException) as exc_info:
+        await pathfinding_service.calculate_fastest_path(request)
+    assert exc_info.value.status_code == 500
+    assert "Invalid response from pathfinding service" in exc_info.value.detail
+
+@pytest.mark.asyncio
+async def test_success(monkeypatch):
+    # Simulate a successful flow with all valid responses.
+    call_count = 0
+    async def fake_forward_request(url, method, body=None, params=None):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            return VALID_ROOM_DATA
+        elif call_count == 2:
+            return VALID_SENSOR_DATA
+        elif call_count == 3:
+            return VALID_FASTEST_PATH_RESPONSE
+    monkeypatch.setattr(pathfinding_service, "forward_request", fake_forward_request)
+    request = path_finding_request(source="RoomA", target="RoomB")
+    response = await pathfinding_service.calculate_fastest_path(request)
+    # Compare dictionaries (assuming fastest_path_type is a Pydantic model)
+    assert response.dict() == VALID_FASTEST_PATH_RESPONSE
+
+# -----------------------------------------------
+# Tests to trigger module-level environment variable errors
+# -----------------------------------------------
+
+def test_missing_sensor_sim(monkeypatch):
+    # Override os.getenv so that SENSOR_SIM returns None.
+    original_getenv = os.getenv
+    def fake_getenv(key, default=None):
+        if key == "SENSOR_SIM":
             return None
-    monkeypatch.setattr("app.services.pathfinding_service.forward_request", fake_forward_request)
+        return original_getenv(key, default)
+    monkeypatch.setattr(os, "getenv", fake_getenv)
+    # Reload the module so that the module-level code runs again.
+    with pytest.raises(RuntimeError, match="SENSOR_SIM not found"):
+        importlib.reload(pathfinding_service)
 
-    payload = {"source": "RoomA", "target": "RoomB"}
-    response = client.post("/fastest-path", json=payload)
-    assert response.status_code == 500
-    assert "Invalid response from pathfinding service" in response.json()["detail"]
-
-# Test: A successful flow where both forward_request calls return valid data.
-def test_success(monkeypatch):
-    call_count = 0
-    async def fake_forward_request(url, method, body=None, params=None):
-        nonlocal call_count
-        call_count += 1
-        if call_count == 1:
-            # Return room data as a dictionary with a "rooms" key.
-            return {"rooms": [{"id": "room1"}, {"id": "room2"}]}
-        elif call_count == 2:
-            # Return a valid pathfinding response with the expected keys.
-            return {"fastest_path": ["RoomA", "room1", "RoomB"], "distance": 10}
-    monkeypatch.setattr("app.services.pathfinding_service.forward_request", fake_forward_request)
-
-    payload = {"source": "RoomA", "target": "RoomB"}
-    response = client.post("/fastest-path", json=payload)
-    assert response.status_code == 200
-    json_response = response.json()
-    assert "fastest_path" in json_response
-    assert "distance" in json_response
-
+def test_missing_pathfinding(monkeypatch):
+    # Override os.getenv so that PATHFINDING returns None.
+    original_getenv = os.getenv
+    def fake_getenv(key, default=None):
+        if key == "PATHFINDING":
+            return None
+        return original_getenv(key, default)
+    monkeypatch.setattr(os, "getenv", fake_getenv)
+    with pytest.raises(RuntimeError, match="PATHFINDING not found"):
+        importlib.reload(pathfinding_service)

@@ -6,8 +6,6 @@ import sys
 import os
 import uvicorn
 
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 app = FastAPI(title="Gateway")
 
 # CORS
