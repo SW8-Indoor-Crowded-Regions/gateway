@@ -37,6 +37,12 @@ def valid_room_data():
 			},
 		]
 	}
+ 
+def test_health_check():
+	response = client.get('/health')
+	assert response.status_code == 200
+	assert response.json() == {'status': 'ok'}
+
    
 
 # Test: Blank source value should trigger 400 error.

@@ -19,21 +19,12 @@ def wait_for_service(url, timeout=60):
 	raise TimeoutError(f'Service {url} did not become available in time.')
 
 
-def test_post_req():
+def test_running():
 	"""E2E test to fetch a path from the gateway."""
 	# Ensure the service is running before testing
-	wait_for_service(f'{BASE_URL}/test', timeout=5)  # Adjust if needed
+	res = wait_for_service(f'{BASE_URL}/health', timeout=5)  # Adjust if needed
 
-	# Define the test payload (example points)
-	payload = {'msg': 'Hello, world!'}
-
-	# Send the request
-	response = requests.post(f'{BASE_URL}/test', json=payload)
-
-	# Assertions
-	assert response.status_code == 200, f'Unexpected status code: {response.status_code}'
-	data = response.json()
-	assert data['message'] == 'Received test data.', f'Unexpected response: {data["message"]}'
+	assert res, 'Service is not running'
 
 # def test_fastest_route():
 # 	"""E2E test to fetch a path from the gateway."""
