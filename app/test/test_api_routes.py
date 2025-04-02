@@ -15,9 +15,6 @@ VALID_ROOM_DATA = {"rooms": [{"id": "room1"}, {"id": "room2"}]}
 VALID_SENSOR_DATA = {"sensors": [{"id": "sensor1"}, {"id": "sensor2"}]}
 VALID_FASTEST_PATH_RESPONSE = {"fastest_path": ["RoomA", "room1", "RoomB"], "distance": 10}
 
-# Helper to run async functions.
-def run_async(coro):
-    return asyncio.run(coro)
 
 # -------------------------------
 # Tests for calculate_fastest_path
