@@ -23,4 +23,4 @@ RUN pip install --no-cache-dir -r requirements.txt pytest pytest-cov
 COPY . /app
 
 # Run only the E2E tests
-CMD ["/wait-for-it.sh", "sensor-sim:8002", "--timeout=60", "--", "python", "-m", "pytest", "--cov=app", "--cov-branch", "test/e2e"]
+CMD ["/wait-for-it.sh", "sensor-sim:8002", "--timeout=60", "--", "python", "-m", "pytest", "-s", "test/e2e"]
