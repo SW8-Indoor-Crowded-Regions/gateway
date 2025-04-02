@@ -1,6 +1,5 @@
 import os
 import importlib
-import asyncio
 import pytest
 from fastapi import HTTPException
 
@@ -15,43 +14,13 @@ VALID_ROOM_DATA = {"rooms": [{"id": "room1"}, {"id": "room2"}]}
 VALID_SENSOR_DATA = {"sensors": [{"id": "sensor1"}, {"id": "sensor2"}]}
 VALID_FASTEST_PATH_RESPONSE = {"fastest_path": ["RoomA", "room1", "RoomB"], "distance": 10}
 
+@pytest.fixture(autouse=True)
+def mock_env(monkeypatch):
+    monkeypatch.setattr("app.services.pathfinding_service.os.getenv", lambda key, default=None: {
+        "SENSOR_SIM": "http://mock-sensor-sim",
+        "PATHFINDING": "http://mock-pathfinding"
+    }.get(key, default))
 
-# -------------------------------
-# Tests for calculate_fastest_path
-# -------------------------------
-
-@pytest.mark.asyncio
-async def test_blank_input():
-    # Test that blank source (or target) triggers 400 error.
-    request = path_finding_request(source="   ", target="RoomA")
-    with pytest.raises(HTTPException) as exc_info:
-        await pathfinding_service.calculate_fastest_path(request)
-    assert exc_info.value.status_code == 400
-    assert "non-empty" in exc_info.value.detail
-
-@pytest.mark.asyncio
-async def test_room_data_forward_exception(monkeypatch):
-    # Simulate exception during room data retrieval (first forward_request call).
-    async def fake_forward_request(url, method, body=None, params=None):
-        raise Exception("Room data fetch error")
-    monkeypatch.setattr(pathfinding_service, "forward_request", fake_forward_request)
-    request = path_finding_request(source="RoomA", target="RoomB")
-    with pytest.raises(HTTPException) as exc_info:
-        await pathfinding_service.calculate_fastest_path(request)
-    assert exc_info.value.status_code == 500
-    assert "Failed to retrieve room data" in exc_info.value.detail
-
-@pytest.mark.asyncio
-async def test_invalid_room_data(monkeypatch):
-    # Simulate invalid room data causing model validation failure.
-    async def fake_forward_request(url, method, body=None, params=None):
-        return "invalid data"
-    monkeypatch.setattr(pathfinding_service, "forward_request", fake_forward_request)
-    request = path_finding_request(source="RoomA", target="RoomB")
-    with pytest.raises(HTTPException) as exc_info:
-        await pathfinding_service.calculate_fastest_path(request)
-    assert exc_info.value.status_code == 500
-    assert "Invalid or empty room data" in exc_info.value.detail
 
 @pytest.mark.asyncio
 async def test_sensor_data_forward_exception(monkeypatch):
@@ -130,8 +99,37 @@ async def test_invalid_pathfinding_response(monkeypatch):
     assert "Invalid response from pathfinding service" in exc_info.value.detail
 
 @pytest.mark.asyncio
+async def test_blank_input():
+    request = path_finding_request(source="   ", target="RoomA")
+    with pytest.raises(HTTPException) as exc_info:
+        await pathfinding_service.calculate_fastest_path(request)
+    assert exc_info.value.status_code == 400
+    assert "non-empty" in exc_info.value.detail
+
+@pytest.mark.asyncio
+async def test_room_data_forward_exception(monkeypatch):
+    async def fake_forward_request(url, method, body=None, params=None):
+        raise Exception("Room data fetch error")
+    monkeypatch.setattr(pathfinding_service, "forward_request", fake_forward_request)
+    request = path_finding_request(source="RoomA", target="RoomB")
+    with pytest.raises(HTTPException) as exc_info:
+        await pathfinding_service.calculate_fastest_path(request)
+    assert exc_info.value.status_code == 500
+    assert "Failed to retrieve room data" in exc_info.value.detail
+
+@pytest.mark.asyncio
+async def test_invalid_room_data(monkeypatch):
+    async def fake_forward_request(url, method, body=None, params=None):
+        return "invalid data structure"
+    monkeypatch.setattr(pathfinding_service, "forward_request", fake_forward_request)
+    request = path_finding_request(source="RoomA", target="RoomB")
+    with pytest.raises(HTTPException) as exc_info:
+        await pathfinding_service.calculate_fastest_path(request)
+    assert exc_info.value.status_code == 500
+    assert "Invalid or empty room data" in exc_info.value.detail
+
+@pytest.mark.asyncio
 async def test_success(monkeypatch):
-    # Simulate a successful flow with all valid responses.
     call_count = 0
     async def fake_forward_request(url, method, body=None, params=None):
         nonlocal call_count
@@ -142,35 +140,20 @@ async def test_success(monkeypatch):
             return VALID_SENSOR_DATA
         elif call_count == 3:
             return VALID_FASTEST_PATH_RESPONSE
+        pytest.fail("should not make more than 3 calls in the test")
     monkeypatch.setattr(pathfinding_service, "forward_request", fake_forward_request)
     request = path_finding_request(source="RoomA", target="RoomB")
     response = await pathfinding_service.calculate_fastest_path(request)
-    # Compare dictionaries (assuming fastest_path_type is a Pydantic model)
-    assert response.dict() == VALID_FASTEST_PATH_RESPONSE
+    assert response.model_dump() == VALID_FASTEST_PATH_RESPONSE
 
-# -----------------------------------------------
-# Tests to trigger module-level environment variable errors
-# -----------------------------------------------
-
-def test_missing_sensor_sim(monkeypatch):
-    # Override os.getenv so that SENSOR_SIM returns None.
-    original_getenv = os.getenv
-    def fake_getenv(key, default=None):
-        if key == "SENSOR_SIM":
-            return None
-        return original_getenv(key, default)
-    monkeypatch.setattr(os, "getenv", fake_getenv)
-    # Reload the module so that the module-level code runs again.
-    with pytest.raises(RuntimeError, match="SENSOR_SIM not found"):
-        importlib.reload(pathfinding_service)
+# Tests for missing environment variables
 
 def test_missing_pathfinding(monkeypatch):
-    # Override os.getenv so that PATHFINDING returns None.
-    original_getenv = os.getenv
-    def fake_getenv(key, default=None):
-        if key == "PATHFINDING":
-            return None
-        return original_getenv(key, default)
-    monkeypatch.setattr(os, "getenv", fake_getenv)
+    monkeypatch.setattr("app.services.pathfinding_service.os.getenv", lambda key, default=None: None if key == "PATHFINDING" else default)
     with pytest.raises(RuntimeError, match="PATHFINDING not found"):
+        importlib.reload(pathfinding_service)
+
+def test_missing_sensor_sim(monkeypatch):
+    monkeypatch.setattr("app.services.pathfinding_service.os.getenv", lambda key, default=None: None if key == "SENSOR_SIM" else default)
+    with pytest.raises(RuntimeError, match="SENSOR_SIM not found"):
         importlib.reload(pathfinding_service)
