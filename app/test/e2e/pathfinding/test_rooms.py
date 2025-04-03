@@ -24,7 +24,6 @@ def test_rooms():
 	assert 'rooms' in data
 	assert isinstance(data['rooms'], list)
 	assert len(data['rooms']) > 0
-	print(data['rooms'][0]['id'])
 	for room in data['rooms']:
 		assert 'id' in room
 		assert 'name' in room
