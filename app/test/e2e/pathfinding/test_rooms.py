@@ -1,7 +1,7 @@
 import requests
 import pytest
 
-BASE_URL = 'http://gateway:8000'  # Your gateway service
+BASE_URL = 'http://gateway:8000' 
 
 @pytest.fixture(scope="module")
 def room_id():
