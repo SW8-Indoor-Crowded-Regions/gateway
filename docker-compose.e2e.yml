@@ -95,7 +95,7 @@ services:
       - gateway   
       - sensor-sim
       - pathfinding
-    command: ["/wait-for-it.sh", "sensor-sim:8002", "--timeout=60", "--", "python", "-m", "pytest", "--cov=app", "--cov-branch", "app/test/e2e"]
+    command: ["/wait-for-it.sh", "sensor-sim:8002", "--timeout=60", "--", "python", "-m", "pytest", "-s", "app/test/e2e"]
 
 volumes:
   zookeeper_data:
