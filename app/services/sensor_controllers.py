@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from app.utils.forwarder import forward_request
-from app.schemas.sensor_response_schemas import SensorModel, SensorListModel
+from app.schemas.sensor_response_schema import SensorModel, SensorListModel
 from fastapi import HTTPException
 
 load_dotenv()

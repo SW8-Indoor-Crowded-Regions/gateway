@@ -28,6 +28,7 @@ def mock_room():
 		'area': 100.0,
 		'longitude': 1.0,
 		'latitude': 1.0,
+		'popularity_factor': 1.0
 	}
 
 

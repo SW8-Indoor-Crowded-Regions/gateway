@@ -1,7 +1,7 @@
 import pytest
 from fastapi import HTTPException
 from app.services.sensor_controllers import get_all_sensors, get_sensor_by_id
-from app.schemas.sensor_response_schemas import SensorModel, SensorListModel
+from app.schemas.sensor_response_schema import SensorModel, SensorListModel
 
 # Mocking the environment variables
 @pytest.fixture
