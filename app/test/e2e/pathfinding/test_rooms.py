@@ -12,7 +12,7 @@ def room_id():
     assert isinstance(data, dict)
     assert 'rooms' in data
     assert len(data['rooms']) > 0
-    room_id = data['rooms'][0]['id']  # Use the first room ID
+    room_id = data['rooms'][0]['id']
     return room_id
 
 def test_rooms():
@@ -45,7 +45,7 @@ def test_rooms():
   
 def test_room_by_id(room_id):
 	"""Test the /rooms/{room_id} endpoint."""
-	response = requests.get(BASE_URL + f'/rooms/{room_id}') # 67ecf79726c72caee4ae141b
+	response = requests.get(BASE_URL + f'/rooms/{room_id}')
 	assert response.status_code == 200
 	room = response.json()
 	assert isinstance(room, dict)
