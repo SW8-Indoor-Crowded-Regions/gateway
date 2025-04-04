@@ -52,8 +52,8 @@ def valid_room_data():
 def valid_sensor_data():
     return {
         "sensors": [
-            {"id": "sensor1", "rooms": ["RoomA", "RoomB"]},
-            {"id": "sensor2", "rooms": ["RoomA", "RoomB"]}
+            {"id": "sensor1", "rooms": ["RoomA", "RoomB"], "latitude": 55.6887823848, "longitude": 12.57792893289},
+            {"id": "sensor2", "rooms": ["RoomA", "RoomB"], "latitude": 55.6887823848, "longitude": 12.57792893289}
         ]
     }
 @pytest.fixture

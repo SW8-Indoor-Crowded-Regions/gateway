@@ -20,6 +20,8 @@ def mock_sensor():
     return {
         "id": "sensor_123",
         "rooms": ["room_1", "room_2"],
+        "latitude": 55.6887823848, 
+        "longitude": 12.57792893289
     }
 
 # Test for getting all sensors
