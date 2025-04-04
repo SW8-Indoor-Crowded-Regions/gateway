@@ -69,16 +69,32 @@ def test_health_check():
 def test_blank_source():
 	payload = {'source': '   ', 'target': 'RoomA'}
 	response = client.post('/fastest-path', json=payload)
-	assert response.status_code == 400
-	assert 'non-empty' in response.json()['detail']
+	assert response.status_code == 422
+	assert response.json()['detail'] == [{
+		'ctx': {
+			'error': {}
+		},
+		'input': '   ',
+		'type': 'value_error',
+		'loc': ['body', 'source'],
+		'msg': "Value error, Field 'source' must be a non-empty string."
+	}]
 
 
 # Test: Blank target value should trigger 400 error.
 def test_blank_target():
 	payload = {'source': 'RoomA', 'target': '   '}
 	response = client.post('/fastest-path', json=payload)
-	assert response.status_code == 400
-	assert 'non-empty' in response.json()['detail']
+	assert response.status_code == 422
+	assert response.json()['detail'] == [{
+		'ctx': {
+			'error': {}
+		},
+		'input': '   ',
+		'type': 'value_error',
+		'loc': ['body', 'target'],
+		'msg': "Value error, Field 'target' must be a non-empty string."
+	}]
 
 
 # Test: Simulate sensor simulation service failure (first forward_request call fails).
