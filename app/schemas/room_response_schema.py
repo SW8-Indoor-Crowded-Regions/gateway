@@ -6,6 +6,7 @@ class RoomModel(BaseModel):
 	name: str
 	type: str
 	crowd_factor: float
+	popularity_factor: float
 	occupants: int
 	area: float
 	longitude: float
