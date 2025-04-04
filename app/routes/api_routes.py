@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.schemas.pathfinding_schema import path_finding_request
+from app.schemas.pathfinding_schema import FrontendPathFindingRequest
 from app.services.pathfinding_service import calculate_fastest_path
 from app.routes.room_routes import router as room_router
 from app.routes.sensor_routes import router as sensor_router
@@ -12,7 +12,7 @@ router.include_router(sensor_router, prefix='/sensors', tags=['sensors'])
 
 
 @router.post('/fastest-path')
-async def get_fastest_path(request: path_finding_request):
+async def get_fastest_path(request: FrontendPathFindingRequest):
 	return await calculate_fastest_path(request)
 
 

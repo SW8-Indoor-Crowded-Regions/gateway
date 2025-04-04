@@ -10,6 +10,7 @@ class RoomModel(BaseModel):
 	area: float
 	longitude: float
 	latitude: float
+	popularity_factor: float
 
 class RoomListModel(BaseModel):
 	rooms: List[RoomModel]

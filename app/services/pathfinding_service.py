@@ -1,7 +1,8 @@
 from fastapi import HTTPException
 from app.utils.forwarder import forward_request
-from app.schemas.pathfinding_schema import path_finding_request, fastest_path_type
+from app.schemas.pathfinding_schema import FrontendPathFindingRequest, FastestPathModel
 from app.schemas.room_response_schema import RoomListModel
+from app.schemas.sensor_response_schema import SensorListModel
 import os
 from dotenv import load_dotenv
 
@@ -15,7 +16,7 @@ if PATHFINDING_PATH is None:
 	raise RuntimeError('PATHFINDING not found in environment variables') # pragma: no cover
 
 
-async def calculate_fastest_path(request: path_finding_request) -> fastest_path_type:
+async def calculate_fastest_path(request: FrontendPathFindingRequest) -> FastestPathModel:
 	# Validate input: ensure source and target are non-empty.
 	if not request.source.strip() or not request.target.strip():
 		raise HTTPException(
@@ -23,10 +24,11 @@ async def calculate_fastest_path(request: path_finding_request) -> fastest_path_
 		)
 
 	# Query sensor simulation service for room data.
-	sensor_sim_url = f'{SENSOR_SIM_PATH}/rooms'
+	sensor_sim_rooms_url = f"{SENSOR_SIM_PATH}/rooms"
+	sensor_sim_sensors_url = f"{SENSOR_SIM_PATH}/sensors"
 
 	try:
-		room_data, _ = await forward_request(sensor_sim_url, 'GET')
+		room_data, _ = await forward_request(sensor_sim_rooms_url, 'GET')
 	except Exception as e:
 		raise HTTPException(
 			status_code=500, detail='Failed to retrieve room data from sensor simulation service'
@@ -39,9 +41,24 @@ async def calculate_fastest_path(request: path_finding_request) -> fastest_path_
 			status_code=500,
 			detail='Invalid or empty room data received from sensor simulation service',
 		) from e
+	
+	try:
+		sensor_data, _ = await forward_request(sensor_sim_sensors_url, 'GET')
+	except Exception as e:
+		raise HTTPException(
+			status_code=500, detail='Failed to retrieve sensor data from sensor simulation service'
+		) from e
 
+	try:
+		SensorListModel.model_validate(sensor_data)
+	except Exception as e:
+		raise HTTPException(
+			status_code=500,
+			detail='Invalid or empty sensor data received from sensor simulation service',
+		) from e
+	
 	# Prepare payload for the pathfinding service.
-	payload = {'source_sensor': request.source, 'target_sensor': request.target, 'rooms': room_data['rooms']}
+	payload = {'source_sensor': request.source, 'target_sensor': request.target, 'rooms': room_data['rooms'], 'sensors': sensor_data['sensors']}
 
 	# Send POST request to the pathfinding service.
 	pathfinding_url = f'{PATHFINDING_PATH}/pathfinding/fastest-path'
@@ -54,8 +71,9 @@ async def calculate_fastest_path(request: path_finding_request) -> fastest_path_
 		) from e
 
 	try:
-		path_response = fastest_path_type.model_validate(path_response)
+		path_response = FastestPathModel.model_validate(path_response)
 	except Exception as e:
+		print(e)
 		raise HTTPException(
 			status_code=status, detail=path_response.get('detail', 'Invalid pathfinding response')
 		) from e
