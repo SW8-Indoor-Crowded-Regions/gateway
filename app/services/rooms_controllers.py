@@ -7,11 +7,11 @@ from fastapi import HTTPException
 load_dotenv()
 SENSOR_SIM_PATH = os.getenv('SENSOR_SIM', 'http://localhost:8002')
 if SENSOR_SIM_PATH is None:
-	raise RuntimeError('SENSOR_SIM not found in environment variables') # pragma: no cover
+	raise RuntimeError('SENSOR_SIM not found in environment variables')  # pragma: no cover
 
 PATHFINDING_PATH = os.getenv('PATHFINDING', 'http://localhost:8001')
 if PATHFINDING_PATH is None:
-	raise RuntimeError('PATHFINDING not found in environment variables') # pragma: no cover
+	raise RuntimeError('PATHFINDING not found in environment variables')  # pragma: no cover
 
 
 async def get_all_rooms() -> RoomListModel:

@@ -1,6 +1,7 @@
 from pydantic import BaseModel
 from typing import List
 
+
 class RoomModel(BaseModel):
 	id: str
 	name: str
@@ -12,6 +13,7 @@ class RoomModel(BaseModel):
 	longitude: float
 	latitude: float
 	popularity_factor: float
+
 
 class RoomListModel(BaseModel):
 	rooms: List[RoomModel]
