@@ -17,31 +17,24 @@ async def get_fastest_path(request: FrontendPathFindingRequest):
 
 
 # Health check route
-@router.get('/health',
-         	tags=['Health Check'],
-				description='Check the health of the API.',
-				response_model=dict,
-    			response_description='Returns the status of the API.',
-				summary='Health check of the API.',
-    			responses={
-					200: {
-						"description": "API is healthy",
-						"content": {
-							"application/json": {
-								"example": {"status": "ok"}
-							}
-						}
-					},
-					500: {
-						"description": "Internal Server Error",
-						"content": {
-							"application/json": {
-								"example": {"status": "error"}
-							}
-						}
-					}
-				}
-			)
+@router.get(
+	'/health',
+	tags=['Health Check'],
+	description='Check the health of the API.',
+	response_model=dict,
+	response_description='Returns the status of the API.',
+	summary='Health check of the API.',
+	responses={
+		200: {
+			'description': 'API is healthy',
+			'content': {'application/json': {'example': {'status': 'ok'}}},
+		},
+		500: {
+			'description': 'Internal Server Error',
+			'content': {'application/json': {'example': {'status': 'error'}}},
+		},
+	},
+)
 async def health_check():
 	return {'status': 'ok'}
 

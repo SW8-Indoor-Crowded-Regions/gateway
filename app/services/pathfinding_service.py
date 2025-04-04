@@ -17,12 +17,6 @@ if PATHFINDING_PATH is None:
 
 
 async def calculate_fastest_path(request: FrontendPathFindingRequest) -> FastestPathModel:
-	# Validate input: ensure source and target are non-empty.
-	if not request.source.strip() or not request.target.strip():
-		raise HTTPException(
-			status_code=400, detail="Both 'source' and 'target' must be non-empty strings."
-		)
-
 	# Query sensor simulation service for room data.
 	sensor_sim_rooms_url = f"{SENSOR_SIM_PATH}/rooms"
 	sensor_sim_sensors_url = f"{SENSOR_SIM_PATH}/sensors"
