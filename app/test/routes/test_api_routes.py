@@ -58,7 +58,11 @@ def valid_sensor_data():
     }
 @pytest.fixture
 def valid_fastest_path_response():
-	return {"fastest_path": ["RoomA", "room1", "RoomB"], "distance": 10}
+	return {"fastest_path": [
+  	{"id": "RoomA", "latitude": 55.6887823848, "longitude": 12.57792893289},
+   	{"id": "room1", "latitude": 55.6887823848, "longitude": 12.57792893289},
+   	{"id": "RoomB", "latitude": 55.6887823848, "longitude": 12.57792893289}],
+  	"distance": 10}
 
 def test_health_check():
 	response = client.get('/health')
@@ -173,7 +177,6 @@ def test_success(monkeypatch, valid_room_data, valid_sensor_data, valid_fastest_
 
 	payload = {'source': 'RoomA', 'target': 'RoomB'}
 	response = client.post('/fastest-path', json=payload)
-	print(response.content)
 	assert response.status_code == 200
 	json_response = response.json()
 	assert 'fastest_path' in json_response

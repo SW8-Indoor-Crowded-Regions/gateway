@@ -10,3 +10,7 @@ class SensorModel(BaseModel):
 class SensorListModel(BaseModel):
   sensors: List[SensorModel]
 
+class SensorNoRoomsModel(BaseModel):
+	id: str
+	latitude: float
+	longitude: float
