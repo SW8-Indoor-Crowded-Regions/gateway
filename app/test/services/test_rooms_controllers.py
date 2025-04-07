@@ -28,12 +28,12 @@ def mock_room():
 		'area': 100.0,
 		'longitude': 1.0,
 		'latitude': 1.0,
-		'popularity_factor': 1.0
+		'popularity_factor': 1.0,
 	}
 
 
 @pytest.mark.asyncio
-async def test_get_all_rooms(mock_env, mock_forward_request, mock_room):  
+async def test_get_all_rooms(mock_env, mock_forward_request, mock_room):
 	mock_response = {'rooms': [mock_room, mock_room]}
 	mock_forward_request.return_value = (mock_response, 200)
 
@@ -67,11 +67,10 @@ async def test_get_room_by_id(mock_env, mock_forward_request, mock_room):
 
 @pytest.mark.asyncio
 async def test_get_room_by_id_invalid_response(mock_env, mock_forward_request):
-	mock_forward_request.return_value = ({ 'details': 'This is an error' }, 500)
+	mock_forward_request.return_value = ({'details': 'This is an error'}, 500)
 
 	with pytest.raises(HTTPException) as exc:
 		await get_room_by_id('1')
 
 	assert exc.value.status_code == 500
 	assert exc.value.detail == 'Invalid room data received from sensor simulation service'
- 

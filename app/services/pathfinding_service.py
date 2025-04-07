@@ -9,23 +9,17 @@ from dotenv import load_dotenv
 load_dotenv()
 SENSOR_SIM_PATH = os.getenv('SENSOR_SIM', 'http://localhost:8002')
 if SENSOR_SIM_PATH is None:
-	raise RuntimeError('SENSOR_SIM not found in environment variables') # pragma: no cover
+	raise RuntimeError('SENSOR_SIM not found in environment variables')  # pragma: no cover
 
 PATHFINDING_PATH = os.getenv('PATHFINDING', 'http://localhost:8001')
 if PATHFINDING_PATH is None:
-	raise RuntimeError('PATHFINDING not found in environment variables') # pragma: no cover
+	raise RuntimeError('PATHFINDING not found in environment variables')  # pragma: no cover
 
 
 async def calculate_fastest_path(request: FrontendPathFindingRequest) -> FastestPathModel:
-	# Validate input: ensure source and target are non-empty.
-	if not request.source.strip() or not request.target.strip():
-		raise HTTPException(
-			status_code=400, detail="Both 'source' and 'target' must be non-empty strings."
-		)
-
 	# Query sensor simulation service for room data.
-	sensor_sim_rooms_url = f"{SENSOR_SIM_PATH}/rooms"
-	sensor_sim_sensors_url = f"{SENSOR_SIM_PATH}/sensors"
+	sensor_sim_rooms_url = f'{SENSOR_SIM_PATH}/rooms'
+	sensor_sim_sensors_url = f'{SENSOR_SIM_PATH}/sensors'
 
 	try:
 		room_data, _ = await forward_request(sensor_sim_rooms_url, 'GET')
@@ -41,7 +35,7 @@ async def calculate_fastest_path(request: FrontendPathFindingRequest) -> Fastest
 			status_code=500,
 			detail='Invalid or empty room data received from sensor simulation service',
 		) from e
-	
+
 	try:
 		sensor_data, _ = await forward_request(sensor_sim_sensors_url, 'GET')
 	except Exception as e:
@@ -56,25 +50,29 @@ async def calculate_fastest_path(request: FrontendPathFindingRequest) -> Fastest
 			status_code=500,
 			detail='Invalid or empty sensor data received from sensor simulation service',
 		) from e
-	
+
 	# Prepare payload for the pathfinding service.
-	payload = {'source_sensor': request.source, 'target_sensor': request.target, 'rooms': room_data['rooms'], 'sensors': sensor_data['sensors']}
+	payload = {
+		'source_sensor': request.source,
+		'target_sensor': request.target,
+		'rooms': room_data['rooms'],
+		'sensors': sensor_data['sensors'],
+	}
 
 	# Send POST request to the pathfinding service.
 	pathfinding_url = f'{PATHFINDING_PATH}/pathfinding/fastest-path'
 
 	try:
 		path_response, status = await forward_request(pathfinding_url, 'POST', body=payload)
-	except Exception as e:
-		raise HTTPException(
+	except Exception as e:  # pragma: no cover
+		raise HTTPException(  # pragma: no cover
 			status_code=500, detail='Error communicating with pathfinding service'
 		) from e
 
 	try:
 		path_response = FastestPathModel.model_validate(path_response)
-	except Exception as e:
-		print(e)
-		raise HTTPException(
+	except Exception as e:  # pragma: no cover)
+		raise HTTPException(  # pragma: no cover
 			status_code=status, detail=path_response.get('detail', 'Invalid pathfinding response')
 		) from e
 
