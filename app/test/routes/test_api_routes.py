@@ -12,12 +12,17 @@ app = FastAPI()
 app.include_router(router)
 client = TestClient(app)
 
+
 @pytest.fixture(autouse=True)
 def mock_env(monkeypatch):
-    monkeypatch.setattr("app.services.pathfinding_service.os.getenv", lambda key, default=None: {
-        "SENSOR_SIM": "http://mock-sensor-sim",
-        "PATHFINDING": "http://mock-pathfinding"
-    }.get(key, default))
+	monkeypatch.setattr(
+		'app.services.pathfinding_service.os.getenv',
+		lambda key, default=None: {
+			'SENSOR_SIM': 'http://mock-sensor-sim',
+			'PATHFINDING': 'http://mock-pathfinding',
+		}.get(key, default),
+	)
+
 
 @pytest.fixture()
 def valid_room_data():
@@ -32,7 +37,7 @@ def valid_room_data():
 				'area': 100.0,
 				'longitude': 1.0,
 				'latitude': 1.0,
-				'popularity_factor': 1.0
+				'popularity_factor': 1.0,
 			},
 			{
 				'id': 'room2',
@@ -43,42 +48,63 @@ def valid_room_data():
 				'area': 100.0,
 				'longitude': 1.0,
 				'latitude': 1.0,
-				'popularity_factor': 1.0
+				'popularity_factor': 1.0,
 			},
 		]
 	}
 
+
 @pytest.fixture
 def valid_sensor_data():
-    return {
-        "sensors": [
-            {"id": "sensor1", "rooms": ["RoomA", "RoomB"]},
-            {"id": "sensor2", "rooms": ["RoomA", "RoomB"]}
-        ]
-    }
+	return {
+		'sensors': [
+			{'id': 'sensor1', 'rooms': ['RoomA', 'RoomB'], 'latitude': 1.0, 'longitude': 1.0},
+			{'id': 'sensor2', 'rooms': ['RoomA', 'RoomB'], 'latitude': 1.0, 'longitude': 1.0},
+		]
+	}
+
+
 @pytest.fixture
 def valid_fastest_path_response():
-	return {"fastest_path": ["RoomA", "room1", "RoomB"], "distance": 10}
+	return {'fastest_path': ['RoomA', 'room1', 'RoomB'], 'distance': 10}
+
 
 def test_health_check():
 	response = client.get('/health')
 	assert response.status_code == 200
 	assert response.json() == {'status': 'ok'}
 
+
 # Test: Blank source value should trigger 400 error.
 def test_blank_source():
 	payload = {'source': '   ', 'target': 'RoomA'}
 	response = client.post('/fastest-path', json=payload)
-	assert response.status_code == 400
-	assert 'non-empty' in response.json()['detail']
+	assert response.status_code == 422
+	assert response.json()['detail'] == [
+		{
+			'ctx': {'error': {}},
+			'input': '   ',
+			'type': 'value_error',
+			'loc': ['body', 'source'],
+			'msg': "Value error, Field 'source' must be a non-empty string.",
+		}
+	]
 
 
 # Test: Blank target value should trigger 400 error.
 def test_blank_target():
 	payload = {'source': 'RoomA', 'target': '   '}
 	response = client.post('/fastest-path', json=payload)
-	assert response.status_code == 400
-	assert 'non-empty' in response.json()['detail']
+	assert response.status_code == 422
+	assert response.json()['detail'] == [
+		{
+			'ctx': {'error': {}},
+			'input': '   ',
+			'type': 'value_error',
+			'loc': ['body', 'target'],
+			'msg': "Value error, Field 'target' must be a non-empty string.",
+		}
+	]
 
 
 # Test: Simulate sensor simulation service failure (first forward_request call fails).
@@ -125,7 +151,9 @@ def test_pathfinding_failure(monkeypatch, valid_room_data):
 	payload = {'source': 'RoomA', 'target': 'RoomB'}
 	response = client.post('/fastest-path', json=payload)
 	assert response.status_code == 500
-	assert 'Failed to retrieve sensor data from sensor simulation service' in response.json()['detail']
+	assert (
+		'Failed to retrieve sensor data from sensor simulation service' in response.json()['detail']
+	)
 
 
 # Test: When pathfinding returns an invalid response (not a dict).
@@ -147,7 +175,10 @@ def test_invalid_pathfinding_response(monkeypatch, valid_room_data):
 	payload = {'source': 'RoomA', 'target': 'RoomB'}
 	response = client.post('/fastest-path', json=payload)
 	assert response.status_code == 500
-	assert 'Invalid or empty sensor data received from sensor simulation service' in response.json()['detail']
+	assert (
+		'Invalid or empty sensor data received from sensor simulation service'
+		in response.json()['detail']
+	)
 
 
 # Test: A successful flow where both forward_request calls return valid data.
@@ -161,14 +192,14 @@ def test_success(monkeypatch, valid_room_data, valid_sensor_data, valid_fastest_
 			# Return room data as a dictionary with a "rooms" key.
 			return valid_room_data, 200
 		elif call_count == 2:
-			# return sensor data 
+			# return sensor data
 			return valid_sensor_data, 200
 		elif call_count == 3:
 			# Return a valid pathfinding response with the expected keys.
 			return valid_fastest_path_response, 200
 		else:
-			raise Exception(f"Unexpected API call with count {call_count}")
-		
+			raise Exception(f'Unexpected API call with count {call_count}')
+
 	monkeypatch.setattr('app.services.pathfinding_service.forward_request', fake_forward_request)
 
 	payload = {'source': 'RoomA', 'target': 'RoomB'}
@@ -179,12 +210,20 @@ def test_success(monkeypatch, valid_room_data, valid_sensor_data, valid_fastest_
 	assert 'fastest_path' in json_response
 	assert 'distance' in json_response
 
+
 def test_missing_pathfinding(monkeypatch):
-    monkeypatch.setattr("app.services.pathfinding_service.os.getenv", lambda key, default=None: None if key == "PATHFINDING" else default)
-    with pytest.raises(RuntimeError, match="PATHFINDING not found"):
-        importlib.reload(pathfinding_service)
+	monkeypatch.setattr(
+		'app.services.pathfinding_service.os.getenv',
+		lambda key, default=None: None if key == 'PATHFINDING' else default,
+	)
+	with pytest.raises(RuntimeError, match='PATHFINDING not found'):
+		importlib.reload(pathfinding_service)
+
 
 def test_missing_sensor_sim(monkeypatch):
-    monkeypatch.setattr("app.services.pathfinding_service.os.getenv", lambda key, default=None: None if key == "SENSOR_SIM" else default)
-    with pytest.raises(RuntimeError, match="SENSOR_SIM not found"):
-        importlib.reload(pathfinding_service)
+	monkeypatch.setattr(
+		'app.services.pathfinding_service.os.getenv',
+		lambda key, default=None: None if key == 'SENSOR_SIM' else default,
+	)
+	with pytest.raises(RuntimeError, match='SENSOR_SIM not found'):
+		importlib.reload(pathfinding_service)

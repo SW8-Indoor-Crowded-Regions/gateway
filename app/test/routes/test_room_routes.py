@@ -8,6 +8,7 @@ from fastapi import HTTPException
 def mock_get_all_rooms(mocker):
 	return mocker.patch('app.routes.room_routes.get_all_rooms')
 
+
 @pytest.fixture
 def mock_get_room_by_id(mocker):
 	return mocker.patch('app.routes.room_routes.get_room_by_id')
@@ -24,7 +25,7 @@ def mock_room():
 		'area': 100.0,
 		'longitude': 1.0,
 		'latitude': 1.0,
-		'popularity_factor': 1.0
+		'popularity_factor': 1.0,
 	}
 
 
@@ -39,7 +40,7 @@ async def test_get_all_rooms_route(client, mock_get_all_rooms, mock_room):
 	mock_response = {'rooms': [mock_room, mock_room]}
 	mock_get_all_rooms.return_value = mock_response
 
-	response = client.get('/rooms/') 
+	response = client.get('/rooms/')
 
 	assert response.status_code == 200
 	assert response.json() == mock_response
@@ -68,4 +69,6 @@ async def test_get_room_by_id_invalid_response(client, mock_get_room_by_id):
 	with pytest.raises(HTTPException) as exc:
 		client.get(f'/rooms/{room_id}')
 		assert exc.value.status_code == 404, f'Expected 404, got {exc.value.status_code}'
-		assert exc.value.detail == 'Room not found', f'Expected "Room not found", got {exc.value.detail}'
+		assert exc.value.detail == 'Room not found', (
+			f'Expected "Room not found", got {exc.value.detail}'
+		)
