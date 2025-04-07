@@ -39,8 +39,14 @@ def test_pathfinding(sensor_ids):
 	assert isinstance(data['fastest_path'], list)
 	assert len(data['fastest_path']) > 0
 	for sensor in data['fastest_path']:
-		assert isinstance(sensor, str)
-		assert sensor.isalnum()
+		assert isinstance(sensor, dict)
+		assert 'id' in sensor
+		assert isinstance(sensor['id'], str)
+		assert sensor['id'].isalnum()
+		assert 'latitude' in sensor
+		assert isinstance(sensor['latitude'], float)
+		assert 'longitude' in sensor
+		assert isinstance(sensor['longitude'], float)
 	assert 'distance' in data
 	assert isinstance(data['distance'], (int, float))
  
