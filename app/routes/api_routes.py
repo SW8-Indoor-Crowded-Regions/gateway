@@ -1,9 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from app.schemas.pathfinding_schema import FrontendPathFindingRequest
 from app.services.pathfinding_service import calculate_fastest_path
 from app.routes.room_routes import router as room_router
 from app.routes.sensor_routes import router as sensor_router
-from app.services.smk_api import search_artwork, get_artwork
+from app.services.smk_api import search_artwork, query_artwork
+from app.schemas.smk_api_schemas import FilterParams, ArtworkResponse, artwork_response_example
+import json
 
 router = APIRouter()
 
@@ -51,13 +53,19 @@ async def smk_search_artwork(keys: str):
 	return await search_artwork(keys)
 
 
+# Route to get all artworks using a query
 @router.get(
-	path='/get-artwork',
-	tags=['SMK API'],
-	description='Get information about a specified artwork from SMK API.',
-	response_model=list[dict],
-	response_description='Returns information about the artwork.',
-	summary='Get artwork information.',
+   path='/artwork',
+   tags=['SMK API'],
+	description='Get artwork based on a query. This endpoint allows you to search by keywords, and filter artworks by room id.',
+	response_model=ArtworkResponse,
+	response_model_exclude_none=True,
+	response_description='Returns a list of artworks based on the query.',
+	summary='Get artworks based on a query.',
+	responses=artwork_response_example,
 )
-async def smk_get_artwork(keys: str):
-	return await get_artwork(keys)
+async def smk_get_artwork_by_query(query: FilterParams = Depends()):
+	res = await query_artwork(query)
+   
+	return res
+   
