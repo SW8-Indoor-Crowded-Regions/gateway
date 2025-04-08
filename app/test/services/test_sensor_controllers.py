@@ -22,13 +22,12 @@ def mock_forward_request(mocker):
 # Mocking a sample sensor
 @pytest.fixture
 def mock_sensor():
-	return {
-		'id': 'sensor_123',
-		'rooms': ['room_1', 'room_2'],
-		'latitude': 1.0,
-		'longitude': 1.0,
-	}
-
+    return {
+        "id": "sensor_123",
+        "rooms": ["room_1", "room_2"],
+        "latitude": 55.6887823848, 
+        "longitude": 12.57792893289
+    }
 
 # Test for getting all sensors
 @pytest.mark.asyncio

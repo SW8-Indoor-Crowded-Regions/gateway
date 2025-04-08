@@ -16,12 +16,12 @@ def mock_get_sensor_by_id(mocker):
 
 @pytest.fixture
 def mock_sensor():
-	return {
-		'id': '67e52c913161b5df7189df14',
-		'rooms': ['room_1', 'room_2'],
-		'latitude': 1.0,
-		'longitude': 1.0,
-	}
+    return {
+        'id': '67e52c913161b5df7189df14',
+        'rooms': ['room_1', 'room_2'],
+        "latitude": 55.6887823848, 
+        "longitude": 12.57792893289
+    }
 
 
 @pytest.fixture

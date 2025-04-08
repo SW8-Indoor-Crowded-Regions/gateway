@@ -2,7 +2,7 @@ get_sensor_by_id_responses: dict[int | str, dict[str, object]] = {
   200: {
     'description': 'Successful Response',
     'content': {
-      'application/json': {'example': {'id': '123', 'rooms': ['room_1_id', 'room_2_id']}}
+      'application/json': {'example': {'id': '123', 'rooms': ['room_1_id', 'room_2_id'], 'latitude': 55.6887823848, 'longitude': 12.57792893289}}
     },
   },
   400: {
@@ -25,8 +25,8 @@ get_sensors_responses: dict[int | str, dict[str, object]] = {
 		'content': {
 			'application/json': {
 				'example': [
-					{'id': '123', 'rooms': ['room_1_id', 'room_2_id']},
-          {'id': '124', 'rooms': ['room_1_id', 'room_2_id'],},
+					{'id': '123', 'rooms': ['room_1_id', 'room_2_id'], 'latitude': 55.6887823848, 'longitude': 12.57792893289},
+          {'id': '124', 'rooms': ['room_1_id', 'room_2_id'], 'latitude': 55.6887823848, 'longitude': 12.57792893289},
 				]
 			}
 		},
