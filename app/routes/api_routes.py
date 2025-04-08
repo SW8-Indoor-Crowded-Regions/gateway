@@ -5,7 +5,6 @@ from app.routes.room_routes import router as room_router
 from app.routes.sensor_routes import router as sensor_router
 from app.services.smk_api import search_artwork, query_artwork
 from app.schemas.smk_api_schemas import FilterParams, ArtworkResponse, artwork_response_example
-import json
 
 router = APIRouter()
 

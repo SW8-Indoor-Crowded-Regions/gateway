@@ -1,7 +1,6 @@
 import pytest
 import httpx
 from fastapi import HTTPException
-from httpx import Response
 from app.utils.forwarder import forward_request
 
 # A fake response object that simulates httpx.Response.json()
