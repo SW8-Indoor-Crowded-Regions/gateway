@@ -1,5 +1,7 @@
 import httpx
 from typing import Any
+from fastapi import HTTPException
+
 
 async def forward_request(
 	target_url: str, method: str, params: dict | None = None, body: dict | None = None
@@ -16,4 +18,20 @@ async def forward_request(
 	"""
 	async with httpx.AsyncClient() as client:
 		response = await client.request(method, target_url, params=params, json=body)
+		if response.status_code != 200:
+			if response.json() and 'detail' in response.json():
+				raise HTTPException(
+					status_code=response.status_code,
+					detail={
+        				'error': response.json()['detail'],
+						'body': body,
+						'method': method,
+						'url': target_url,
+						'params': params,
+            	},
+				)
+			raise HTTPException(
+				status_code=response.status_code,
+				detail=response.json(),
+			)
 		return response.json(), response.status_code
