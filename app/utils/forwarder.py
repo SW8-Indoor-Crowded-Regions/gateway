@@ -24,10 +24,10 @@ async def forward_request(
 					status_code=response.status_code,
 					detail={
         				'error': response.json()['detail'],
-						'body': body,
+						'body': body if len(body.__str__()) < 1000 else 'Body too large to display',
 						'method': method,
-						'url': target_url,
-						'params': params,
+						'url': target_url if len(target_url) < 1000 else 'URL too large to display',
+						'params': params if len(params.__str__()) < 1000 else 'Params too large to display',
             	},
 				)
 			raise HTTPException(
