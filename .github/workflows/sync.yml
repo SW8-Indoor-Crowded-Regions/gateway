@@ -1,0 +1,49 @@
+name: Sync branches after PR merge
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  sync-branch:
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.WORKFLOW_TOKEN }}
+
+      - name: Set up Git
+        env:
+           TOKEN: ${{ secrets.WORKFLOW_TOKEN }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git remote set-url origin https://x-access-token:${TOKEN}@github.com/${{ github.repository }}.git
+
+      - name: Identify base and compare branches
+        id: vars
+        run: |
+          echo "BASE_BRANCH=${{ github.event.pull_request.base.ref }}" >> $GITHUB_ENV
+          echo "COMPARE_BRANCH=${{ github.event.pull_request.head.ref }}" >> $GITHUB_ENV
+
+      - name: Checkout base branch
+        run: |
+          git checkout ${{ env.BASE_BRANCH }}
+          git pull origin ${{ env.BASE_BRANCH }}
+
+      - name: Sync compare branch with base branch
+        run: |
+          git checkout ${{ env.COMPARE_BRANCH }}
+          git merge --ff-only ${{ env.BASE_BRANCH }} || echo "Already up-to-date"
+
+      - name: Push updates to compare branch
+        run: |
+          git push origin ${{ env.COMPARE_BRANCH }}
