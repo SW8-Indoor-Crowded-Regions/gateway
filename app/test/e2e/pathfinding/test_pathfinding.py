@@ -31,7 +31,6 @@ def test_pathfinding(sensor_ids):
 
 	response = requests.post(BASE_URL + '/fastest-path', json=request_body)
  
-	print(response.json())
 	assert response.status_code == 200
 	data = response.json()
 	assert isinstance(data, dict)
@@ -65,7 +64,7 @@ def test_pathfinding_invalid_source(sensor_ids):
 	data = response.json()
 	assert isinstance(data, dict)
 	assert 'detail' in data
-	assert data['detail'] == "Source sensor 'invalid_source' not found in the sensor graph."
+	assert data['detail']['error'] == "Source sensor 'invalid_source' not found in the sensor graph."
  
 def test_pathfinding_invalid_target(sensor_ids):
 	"""Test the /fastest-path endpoint with invalid target."""
@@ -81,7 +80,7 @@ def test_pathfinding_invalid_target(sensor_ids):
 	data = response.json()
 	assert isinstance(data, dict)
 	assert 'detail' in data
-	assert data['detail'] == "Target sensor 'invalid_target' not found in the sensor graph."
+	assert data['detail']['error'] == "Target sensor 'invalid_target' not found in the sensor graph."
  
 def test_pathfinding_empty_source(sensor_ids):
 	"""Test the /fastest-path endpoint with empty source."""
