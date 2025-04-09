@@ -62,18 +62,6 @@ async def calculate_fastest_path(request: FrontendPathFindingRequest) -> Fastest
 	# Send POST request to the pathfinding service.
 	pathfinding_url = f'{PATHFINDING_PATH}/pathfinding/fastest-path'
 
-	try:
-		path_response, status = await forward_request(pathfinding_url, 'POST', body=payload)
-	except Exception as e:  # pragma: no cover
-		raise HTTPException(  # pragma: no cover
-			status_code=500, detail='Error communicating with pathfinding service'
-		) from e
-
-	try:
-		path_response = FastestPathModel.model_validate(path_response)
-	except Exception as e:  # pragma: no cover)
-		raise HTTPException(  # pragma: no cover
-			status_code=status, detail=path_response.get('detail', 'Invalid pathfinding response')
-		) from e
+	path_response, _ = await forward_request(pathfinding_url, 'POST', body=payload)
 
 	return path_response
