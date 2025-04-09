@@ -1,5 +1,4 @@
 import requests
-import pytest
 
 BASE_URL = 'http://gateway:8000'
 
