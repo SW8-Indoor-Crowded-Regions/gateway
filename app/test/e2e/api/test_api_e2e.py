@@ -9,7 +9,7 @@ def get_room_id(room_name: str | None = None):
 	assert response.status_code == 200
 	data = response.json()
 	assert isinstance(data, dict)
-	assert 'rooms' in data
+	assert 'rooms' in data, "Received: " + str(data)
 	assert len(data['rooms']) > 0
 	if room_name:
 		room = next((room for room in data['rooms'] if room['name'] == room_name), None)
@@ -38,7 +38,7 @@ def test_artwork_query():
 
 def test_artwork_query_room():
 	"""Test the /artwork endpoint with a room ID."""
-	room_id = get_room_id('217A')
+	room_id = get_room_id('sal 217a')
 	response = requests.get(BASE_URL + f'/artwork?room={room_id}')
 	assert response.status_code == 200
 	data = response.json()
@@ -66,7 +66,7 @@ def test_artwork_query_room_not_found():
  
 def test_artwork_query_room_invalid():
 	"""Test the /artwork endpoint with an invalid room ID."""
-	room_id = get_room_id('217A')
+	room_id = get_room_id('sal 217a')
 	response = requests.get(BASE_URL + f'/artwork?room={room_id}invalid')
 	assert response.status_code == 400
 	data = response.json()
