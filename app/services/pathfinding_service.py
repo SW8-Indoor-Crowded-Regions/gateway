@@ -53,8 +53,8 @@ async def calculate_fastest_path(request: FrontendPathFindingRequest) -> Fastest
 
 	# Prepare payload for the pathfinding service.
 	payload = {
-		'source_sensor': request.source,
-		'target_sensor': request.target,
+		'source_room': request.source,
+		'target_room': request.target,
 		'rooms': room_data['rooms'],
 		'sensors': sensor_data['sensors'],
 	}
