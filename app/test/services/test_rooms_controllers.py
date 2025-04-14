@@ -2,6 +2,7 @@ import pytest
 from fastapi import HTTPException
 from app.services.rooms_controllers import get_all_rooms, get_room_by_id
 from app.schemas.room_response_schema import RoomModel, RoomListModel
+from app.test.factories.room_factory import RoomFactory
 
 
 @pytest.fixture
@@ -17,24 +18,9 @@ def mock_env(monkeypatch):
 	)
 
 
-@pytest.fixture
-def mock_room():
-	return {
-		'id': 'da23f2419483',
-		'name': 'Room A',
-		'type': 'EXHIBITION',
-		'crowd_factor': 0.5,
-		'occupants': 10,
-		'area': 100.0,
-		'longitude': 1.0,
-		'latitude': 1.0,
-		'popularity_factor': 1.0,
-	}
-
-
 @pytest.mark.asyncio
-async def test_get_all_rooms(mock_env, mock_forward_request, mock_room):
-	mock_response = {'rooms': [mock_room, mock_room]}
+async def test_get_all_rooms(mock_env, mock_forward_request):
+	mock_response = {'rooms': [room.to_dict() for room in [RoomFactory() for _ in range(10)]]}
 	mock_forward_request.return_value = (mock_response, 200)
 
 	result = await get_all_rooms()
@@ -55,13 +41,15 @@ async def test_get_all_rooms_invalid_response(mock_env, mock_forward_request):
 
 
 @pytest.mark.asyncio
-async def test_get_room_by_id(mock_env, mock_forward_request, mock_room):
-	room_id = '1'
+async def test_get_room_by_id(mock_env, mock_forward_request):
+	room_id = '67e52c913161b5df7189df14'
+	mock_room = RoomFactory(id=room_id).to_dict()
 	mock_forward_request.return_value = (mock_room, 200)
 
 	result = await get_room_by_id(room_id)
 
-	assert RoomModel.model_validate(result) == RoomModel.model_validate(mock_room)
+	assert RoomModel.model_validate(result)
+	assert result == mock_room
 	mock_forward_request.assert_called_once_with(f'http://mock-sensor-sim/rooms/{room_id}', 'GET')
 
 
