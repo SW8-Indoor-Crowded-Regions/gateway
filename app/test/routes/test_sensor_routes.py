@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from app.routes.api_routes import router
 from fastapi import HTTPException
+from app.test.factories.sensor_factory import SensorFactory
 
 
 @pytest.fixture
@@ -15,24 +16,14 @@ def mock_get_sensor_by_id(mocker):
 
 
 @pytest.fixture
-def mock_sensor():
-    return {
-        'id': '67e52c913161b5df7189df14',
-        'rooms': ['room_1', 'room_2'],
-        "latitude": 55.6887823848, 
-        "longitude": 12.57792893289
-    }
-
-
-@pytest.fixture
 def client():
 	with TestClient(router) as client:
 		yield client
 
 
 @pytest.mark.asyncio
-async def test_get_all_sensors_route(client, mock_get_all_sensors, mock_sensor):
-	mock_response = {'sensors': [mock_sensor, mock_sensor]}
+async def test_get_all_sensors_route(client, mock_get_all_sensors):
+	mock_response = {'sensors': [sensor.to_dict() for sensor in [SensorFactory() for _ in range(10)]]}
 	mock_get_all_sensors.return_value = mock_response
 
 	response = client.get('/sensors/')  # Assuming the endpoint is '/sensors/'
@@ -43,10 +34,10 @@ async def test_get_all_sensors_route(client, mock_get_all_sensors, mock_sensor):
 
 
 @pytest.mark.asyncio
-async def test_get_sensor_by_id_route(client, mock_get_sensor_by_id, mock_sensor):
+async def test_get_sensor_by_id_route(client, mock_get_sensor_by_id):
 	sensor_id = '67e52c913161b5df7189df14'
 	# Mocking the response for 'get_sensor_by_id'
-	mock_response = mock_sensor
+	mock_response = SensorFactory(id=sensor_id).to_dict()
 	mock_get_sensor_by_id.return_value = mock_response
 
 	response = client.get(
