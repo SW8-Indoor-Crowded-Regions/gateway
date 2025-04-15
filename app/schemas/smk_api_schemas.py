@@ -82,7 +82,15 @@ class ArtworkResponse(BaseModel):
 	items: List[Artwork]
 	facets: Optional[Dict[str, Any]] = {}
 	facets_ranges: Optional[Dict[str, Any]] = {}
-	autocomplete: Optional[List[str]] = []
+ 
+	def __init__(self, **data):
+		super().__init__(**data)
+		self.offset = data.get('offset', 0)
+		self.rows = data.get('rows', 0)
+		self.found = data.get('found', 0)
+		self.items = [Artwork(**item) for item in data.get('items', [])]
+		self.facets = data.get('facets', {})
+		self.facets_ranges = data.get('facets_ranges', {})
 
 
 artwork_response_example: Dict[int | str, Dict[str, Any]] = {
