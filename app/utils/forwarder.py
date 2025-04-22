@@ -18,12 +18,21 @@ async def forward_request(
 	"""
 	async with httpx.AsyncClient() as client:
 		response = await client.request(method, target_url, params=params, json=body)
+  
+		try:
+			response_data = response.json()
+		except Exception:
+			response_data = response.text
 		if response.status_code != 200:
-			if response.json() and 'detail' in response.json():
+			if response_data and 'detail' in response_data:
+				if isinstance(response_data, str):
+					error_message = response_data
+				else:
+					error_message = response_data.get('detail', 'Unknown error')
 				raise HTTPException(
 					status_code=response.status_code,
 					detail={
-        				'error': response.json()['detail'],
+        				'error': error_message,
 						'body': body if len(body.__str__()) < 1000 else 'Body too large to display',
 						'method': method,
 						'url': target_url if len(target_url) < 1000 else 'URL too large to display',
@@ -32,6 +41,6 @@ async def forward_request(
 				)
 			raise HTTPException(
 				status_code=response.status_code,
-				detail=response.json(),
+				detail=response_data,
 			)
 		return response.json(), response.status_code
