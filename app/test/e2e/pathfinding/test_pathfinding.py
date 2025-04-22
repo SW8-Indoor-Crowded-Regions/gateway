@@ -67,7 +67,7 @@ def test_pathfinding_invalid_source(room_ids):
 	data = response.json()
 	assert isinstance(data, dict)
 	assert 'detail' in data
-	assert data['detail']['error'] == "Source room 'invalid_source' not found in the sensor graph."
+	assert data['detail']['error'] == "Source room 'invalid_source' is not valid."
  
 def test_pathfinding_invalid_target(room_ids):
 	"""Test the /fastest-path endpoint with invalid target."""
@@ -83,7 +83,7 @@ def test_pathfinding_invalid_target(room_ids):
 	data = response.json()
 	assert isinstance(data, dict)
 	assert 'detail' in data
-	assert data['detail']['error'] == "Target room 'invalid_target' not found in the sensor graph."
+	assert data['detail']['error'] == "Target room 'invalid_target' is not valid."
  
 def test_pathfinding_empty_source(room_ids):
 	"""Test the /fastest-path endpoint with empty source."""
