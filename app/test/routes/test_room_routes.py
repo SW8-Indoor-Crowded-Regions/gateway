@@ -2,6 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from app.routes.api_routes import router
 from fastapi import HTTPException
+from app.test.factories.room_factory import RoomFactory
 
 
 @pytest.fixture
@@ -15,29 +16,14 @@ def mock_get_room_by_id(mocker):
 
 
 @pytest.fixture
-def mock_room():
-	return {
-		'id': '67e52c913161b5df7189df14',
-		'name': 'Room A',
-		'type': 'EXHIBITION',
-		'crowd_factor': 0.5,
-		'occupants': 10,
-		'area': 100.0,
-		'longitude': 1.0,
-		'latitude': 1.0,
-		'popularity_factor': 1.0,
-	}
-
-
-@pytest.fixture
 def client():
 	with TestClient(router) as client:
 		yield client
 
 
 @pytest.mark.asyncio
-async def test_get_all_rooms_route(client, mock_get_all_rooms, mock_room):
-	mock_response = {'rooms': [mock_room, mock_room]}
+async def test_get_all_rooms_route(client, mock_get_all_rooms):
+	mock_response = {'rooms': [room.to_dict() for room in [RoomFactory() for _ in range(10)]]}
 	mock_get_all_rooms.return_value = mock_response
 
 	response = client.get('/rooms/')
@@ -48,10 +34,10 @@ async def test_get_all_rooms_route(client, mock_get_all_rooms, mock_room):
 
 
 @pytest.mark.asyncio
-async def test_get_room_by_id_route(client, mock_get_room_by_id, mock_room):
+async def test_get_room_by_id_route(client, mock_get_room_by_id):
 	room_id = '67e52c913161b5df7189df14'
 	# Mocking the response for 'get_room_by_id'
-	mock_response = mock_room
+	mock_response = RoomFactory(id=room_id).to_dict()
 	mock_get_room_by_id.return_value = mock_response
 
 	response = client.get(f'/rooms/{room_id}')  # Assuming the endpoint is '/rooms/{room_id}'

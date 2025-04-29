@@ -29,6 +29,7 @@ async def search_artwork(keys: str):
 
 	params = {
 		'keys': keys,
+		'filters': '[on_display:true]',
 	}
 
 	try:
@@ -56,18 +57,26 @@ async def query_artwork(query_obj: FilterParams=Depends()) -> ArtworkResponse:
 			raise HTTPException(status_code=status, detail=room['detail'])
 
  
-	fields = 'current_location_name,dimensions,artist,acquisition_date,responsible_department,titles,production_date,colors,techniques'
- 
 	artworks, _ = await forward_request(
 		'https://api.smk.dk/api/v1/art/search',
 		'GET',
 		params={
 			'keys': query.get('keys') if query.get('keys') else '*',
-			'filters': f'[current_location_name:sal {room.get("name", "")}]' if room else None,
+			'filters': f'[current_location_name:{room.get("name", "")}]' if room else "[on_display:true]",
 			'rows': min(query.get('limit', math.inf), 2000) if query.get('limit') else None,
 			'offset': query.get('offset', None) if query.get('offset') else None,
-			'fields': fields,
+			'qfields': 'titles,creator,tags',
 		}
 	)
-
-	return artworks
+ 
+	filtered = list(filter(lambda x: x.get('part_of') is None, artworks['items']))
+ 
+ 
+	res: ArtworkResponse = ArtworkResponse(
+		items=filtered,
+		found=artworks['found'],
+		offset=artworks['offset'],
+		rows=artworks['rows'],
+	)
+ 
+	return res

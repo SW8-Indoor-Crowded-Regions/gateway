@@ -13,6 +13,8 @@ class RoomModel(BaseModel):
 	longitude: float
 	latitude: float
 	popularity_factor: float
+	floor: int
+	borders: List[List[float]]
 
 
 class RoomListModel(BaseModel):

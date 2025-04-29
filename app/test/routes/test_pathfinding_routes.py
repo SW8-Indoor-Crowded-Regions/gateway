@@ -6,6 +6,8 @@ import pytest
 # Import the router from the new structure.
 from app.routes.api_routes import router
 from app.services import pathfinding_service
+from app.test.factories.sensor_factory import SensorFactory
+from app.test.factories.room_factory import RoomFactory
 
 
 app = FastAPI()
@@ -28,39 +30,15 @@ def mock_env(monkeypatch):
 def valid_room_data():
 	return {
 		'rooms': [
-			{
-				'id': 'room1',
-				'name': 'RoomA',
-				'type': 'EXHIBITION',
-				'crowd_factor': 0.5,
-				'occupants': 10,
-				'area': 100.0,
-				'longitude': 1.0,
-				'latitude': 1.0,
-				'popularity_factor': 1.0,
-			},
-			{
-				'id': 'room2',
-				'name': 'RoomB',
-				'type': 'EXHIBITION',
-				'crowd_factor': 0.5,
-				'occupants': 10,
-				'area': 100.0,
-				'longitude': 1.0,
-				'latitude': 1.0,
-				'popularity_factor': 1.0,
-			},
-		]
+			room.to_dict() for room in [RoomFactory() for _ in range(10)]
+		],
 	}
 
 
 @pytest.fixture
 def valid_sensor_data():
     return {
-        "sensors": [
-            {"id": "sensor1", "rooms": ["RoomA", "RoomB"], "latitude": 55.6887823848, "longitude": 12.57792893289},
-            {"id": "sensor2", "rooms": ["RoomA", "RoomB"], "latitude": 55.6887823848, "longitude": 12.57792893289}
-        ]
+        "sensors": [sensor.to_dict() for sensor in [SensorFactory() for _ in range(10)]],
     }
 
 
