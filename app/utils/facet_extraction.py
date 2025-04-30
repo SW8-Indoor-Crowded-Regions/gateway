@@ -1,5 +1,4 @@
 import requests
-from collections import Counter
 
 total_techniques = 0
 
@@ -37,6 +36,7 @@ def fetch_all_artworks():
 
 	return all_artworks, data.get('facets', {})
 
+
 def get_facet_count(facets: dict, facet_name: str) -> list[dict]:
 	"""Get the creators of the artworks and their counts."""
 	facets = facets.get(facet_name, [])
@@ -45,7 +45,7 @@ def get_facet_count(facets: dict, facet_name: str) -> list[dict]:
 		name = facets[i]
 		count = facets[i + 1]
 		facet_list.append({'name': name, 'count': count})
-		
+
 	return facet_list
 
 
@@ -53,16 +53,13 @@ def main():
 	print('Fetching all artworks from SMK API...')
 	artworks, facets = fetch_all_artworks()
 	print(f'Fetched {len(artworks)} artworks.')
- 
+
 	# Count the occurrences of each facet
 	for facet in facets:
 		objs = get_facet_count(facets, facet)
 		print(f'{str(facet).capitalize()}:')
 		for obj in objs:
-			print(f"	{str(obj['name']).ljust(33).capitalize()} {str(obj['count']).rjust(3)}")
-
-	
-
+			print(f'	{str(obj["name"]).ljust(33).capitalize()} {str(obj["count"]).rjust(3)}')
 
 
 if __name__ == '__main__':
