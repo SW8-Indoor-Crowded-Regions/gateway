@@ -39,3 +39,23 @@ get_filters_responses: dict[int | str, dict[str, object]] = {
 		'content': {'application/json': {'example': {'detail': 'Internal Server Error'}}},
 	},
 }
+
+
+filter_to_rooms_responses: dict[int | str, dict[str, object]] = {
+	200: {
+		'description': 'Successful Response',
+		'content': {
+			'application/json': {
+				'example': [
+					'room1',
+					'room2',
+					'room3'
+				]
+			}
+		},
+	},
+	500: {
+		'description': 'Internal Server Error',
+		'content': {'application/json': {'example': {'detail': 'Internal Server Error'}}},
+	},
+}
