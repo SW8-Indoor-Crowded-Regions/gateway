@@ -35,3 +35,34 @@ def test_get_filters_route_error():
 	):
 		response = client.get('/filters')
 		assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+
+def test_post_rooms_success():
+    request_data = {
+        "filters": [
+            {"type": "creator", "keys": ["John Doe", "Jane Smith"]},
+            {"type": "materials", "keys": ["Oil"]}
+        ]
+    }
+
+    mock_response = ["Room 1", "Room 2", "Room 3"]
+
+    with patch("app.routes.filter_routes.filter_to_rooms", return_value=mock_response):
+        response = client.post("/rooms", json=request_data)
+        assert response.status_code == status.HTTP_200_OK
+        assert response.json() == mock_response
+
+
+def test_post_rooms_error():
+    request_data = {
+        "filters": [
+            {"type": "creator", "keys": ["Unknown"]}
+        ]
+    }
+
+    with patch(
+        "app.routes.filter_routes.filter_to_rooms",
+        side_effect=HTTPException(status_code=500, detail="Service error")
+    ):
+        response = client.post("/rooms", json=request_data)
+        assert response.status_code == status.HTTP_500_INTERNAL_SERVER_ERROR
+        assert response.json()["detail"] == "Service error"
