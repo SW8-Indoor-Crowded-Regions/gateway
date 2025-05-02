@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
 from app.schemas.filter_schemas import FilterResponse, FilterToRoomsRequest
 from app.utils.responses.filter import get_filters_responses, filter_to_rooms_responses
 from app.services.filter_service import get_filters as fetch_filters, filter_to_rooms

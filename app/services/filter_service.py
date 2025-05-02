@@ -1,6 +1,6 @@
 from fastapi import HTTPException
 import requests
-from app.schemas.filter_schemas import FilterToRoomsRequest, Filter
+from app.schemas.filter_schemas import FilterToRoomsRequest
 
 filter_types = [
 	'creator',
@@ -74,7 +74,6 @@ def get_rooms(filter_name: str, value: str) -> list[str]:
 			'keys': '*',
 			'offset': 0,
 			'rows': 10,
-			'filters': f'[on_display:true]',
 			'filters': f'[{filter_name}:{value}]',
 			'facets': ['current_location_name'],
 		},
