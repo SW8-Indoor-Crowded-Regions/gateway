@@ -31,7 +31,7 @@ async def get_filters():
 )
 async def filters_to_rooms(request: FilterToRoomsRequest):
 	"""
-	Get rooms by filter ID.
+	Get rooms needed to visit all artworks based on filters.
 	"""
 	rooms = filter_to_rooms(request)
 	return rooms
