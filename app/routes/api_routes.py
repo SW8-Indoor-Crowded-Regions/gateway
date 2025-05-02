@@ -5,11 +5,13 @@ from app.routes.room_routes import router as room_router
 from app.routes.sensor_routes import router as sensor_router
 from app.services.smk_api import search_artwork, query_artwork
 from app.schemas.smk_api_schemas import FilterParams, ArtworkResponse, artwork_response_example
+from app.routes.filter_routes import router as filter_router
 
 router = APIRouter()
 
 router.include_router(room_router, prefix='/rooms', tags=['rooms'])
 router.include_router(sensor_router, prefix='/sensors', tags=['sensors'])
+router.include_router(filter_router, prefix='/filters', tags=['filters'])
 
 
 @router.post('/fastest-path')
