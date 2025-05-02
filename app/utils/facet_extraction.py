@@ -40,6 +40,8 @@ def fetch_all_artworks():
 def get_facet_count(facets: dict, facet_name: str) -> list[dict]:
 	"""Get the creators of the artworks and their counts."""
 	facets = facets.get(facet_name, [])
+	if len(facets) % 2 != 0:
+		raise ValueError(f"The facets list for '{facet_name}' has an odd length, indicating malformed data: {len(facets)} elements.")
 	facet_list: list[dict] = []
 	for i in range(0, len(facets), 2):
 		name = facets[i]

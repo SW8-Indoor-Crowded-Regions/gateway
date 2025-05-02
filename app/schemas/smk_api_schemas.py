@@ -73,6 +73,8 @@ class Artwork(BaseModel):
 	titles: Optional[List[Title]] = []
 	colors: Optional[List[str]] = []
 	artist: List[str] = []
+	image_thumbnail: Optional[str] = None
+	frontend_url: Optional[str] = None
 
 
 class ArtworkResponse(BaseModel):
@@ -109,6 +111,8 @@ artwork_response_example: Dict[int | str, Dict[str, Any]] = {
 				'titles': [],
 				'colors': ['Red', 'Blue'],
 				'artist': ['John Doe'],
+				'image_thumbnail': 'https://example.com/image.jpg',
+				'frontend_url': 'https://example.com/artwork/12345',
 			},
 			{
 				'responsible_department': 'Department of Sculptures',
@@ -120,6 +124,8 @@ artwork_response_example: Dict[int | str, Dict[str, Any]] = {
 				'titles': [],
 				'colors': ['White'],
 				'artist': ['Jane Smith'],
+				'image_thumbnail': 'https://example.com/image.jpg',
+				'frontend_url': 'https://example.com/artwork/67890',
 			},
 		],
 		'facets': {},
