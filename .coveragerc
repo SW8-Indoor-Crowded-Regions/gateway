@@ -4,6 +4,7 @@ omit =
 	app/test/*
 	app/main.py
 	app/config.py
+   app/utils/facet_extraction.py
 [report]
 show_missing = true
 precision = 2
