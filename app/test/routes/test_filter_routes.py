@@ -1,10 +1,8 @@
-import pytest
 from fastapi import status, FastAPI, HTTPException
 from fastapi.testclient import TestClient
 from unittest.mock import patch
 
 from app.routes.filter_routes import router
-from app.schemas.filter_schemas import FilterResponse
 
 
 app = FastAPI()
