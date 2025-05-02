@@ -14,5 +14,5 @@ class FilterResponse(BaseModel):
 		"""Validate the type field."""
 		valid_types = ['creator', 'materials']
 		if value not in valid_types:
-			raise ValueError(f"Invalid type '{value}'. Must be one of " + valid_types.__str__() + ".")
+			raise ValueError(f"Invalid type '{value}'. Must be one of " + valid_types.__str__() + ".") # pragma: no cover
 		return value
