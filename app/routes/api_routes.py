@@ -1,11 +1,12 @@
 from fastapi import APIRouter, Depends
-from app.schemas.pathfinding_schema import FrontendPathFindingRequest
-from app.services.pathfinding_service import calculate_fastest_path
+from app.schemas.pathfinding_schema import FrontendPathFindingRequest, FrontendMultiPathRequest, FastestPathModel
+from app.services.pathfinding_service import calculate_fastest_path, calculate_fastest_multipoint_path
 from app.routes.room_routes import router as room_router
 from app.routes.sensor_routes import router as sensor_router
 from app.services.smk_api import search_artwork, query_artwork
 from app.schemas.smk_api_schemas import FilterParams, ArtworkResponse, artwork_response_example
 from app.routes.filter_routes import router as filter_router
+from app.utils.responses.pathfinding import multipoint_path_response
 
 router = APIRouter()
 
@@ -18,6 +19,16 @@ router.include_router(filter_router, prefix='/filters', tags=['filters'])
 async def get_fastest_path(request: FrontendPathFindingRequest):
 	return await calculate_fastest_path(request)
 
+
+@router.post('/multi-point-path',
+	description='Calculate the fastest path between multiple points.',
+	response_model=FastestPathModel,
+	response_description='Returns the fastest path between multiple points.',
+	summary='Calculate the fastest path between multiple points.',
+	responses=multipoint_path_response
+)
+async def get_fastest_multi_path(request: FrontendMultiPathRequest):
+	return await calculate_fastest_multipoint_path(request)
 
 # Health check route
 @router.get(

@@ -14,6 +14,11 @@ class FrontendPathFindingRequest(BaseModel):
 		return value
 
 
+class FrontendMultiPathRequest(BaseModel):
+	source: str
+	targets: List[str]
+
+
 class FastestPathModel(BaseModel):
     fastest_path: List[SensorNoRoomsModel]
     distance: float

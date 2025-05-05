@@ -1,62 +1,29 @@
 from fastapi import HTTPException
 from app.utils.forwarder import forward_request
-from app.schemas.pathfinding_schema import FrontendPathFindingRequest, FastestPathModel
+from app.schemas.pathfinding_schema import FrontendPathFindingRequest, FastestPathModel, FrontendMultiPathRequest
 from app.schemas.room_response_schema import RoomListModel
 from app.schemas.sensor_response_schema import SensorListModel
+from app.utils.room_sensor_fetch import fetch_and_validate
 import os
 from dotenv import load_dotenv
+import requests
 
 load_dotenv()
-SENSOR_SIM_PATH = os.getenv('SENSOR_SIM', 'http://localhost:8002')
-if SENSOR_SIM_PATH is None:
-	raise RuntimeError('SENSOR_SIM not found in environment variables')  # pragma: no cover
 
 PATHFINDING_PATH = os.getenv('PATHFINDING', 'http://localhost:8001')
 if PATHFINDING_PATH is None:
 	raise RuntimeError('PATHFINDING not found in environment variables')  # pragma: no cover
 
-
 async def calculate_fastest_path(request: FrontendPathFindingRequest) -> FastestPathModel:
-	# Query sensor simulation service for room data.
-	sensor_sim_rooms_url = f'{SENSOR_SIM_PATH}/rooms'
-	sensor_sim_sensors_url = f'{SENSOR_SIM_PATH}/sensors'
-
-	try:
-		room_data, _ = await forward_request(sensor_sim_rooms_url, 'GET')
-	except Exception as e:
-		raise HTTPException(
-			status_code=500, detail='Failed to retrieve room data from sensor simulation service'
-		) from e
-
-	try:
-		RoomListModel.model_validate(room_data)
-	except Exception as e:
-		raise HTTPException(
-			status_code=500,
-			detail='Invalid or empty room data received from sensor simulation service',
-		) from e
-
-	try:
-		sensor_data, _ = await forward_request(sensor_sim_sensors_url, 'GET')
-	except Exception as e:
-		raise HTTPException(
-			status_code=500, detail='Failed to retrieve sensor data from sensor simulation service'
-		) from e
-
-	try:
-		SensorListModel.model_validate(sensor_data)
-	except Exception as e:
-		raise HTTPException(
-			status_code=500,
-			detail='Invalid or empty sensor data received from sensor simulation service',
-		) from e
+	room_data = await fetch_and_validate(RoomListModel, 'rooms')
+	sensor_data = await fetch_and_validate(SensorListModel, 'sensors')
 
 	# Prepare payload for the pathfinding service.
 	payload = {
 		'source_room': request.source,
 		'target_room': request.target,
-		'rooms': room_data['rooms'],
-		'sensors': sensor_data['sensors'],
+		'rooms': room_data.rooms,
+		'sensors': sensor_data.sensors,
 	}
 
 	# Send POST request to the pathfinding service.
@@ -65,3 +32,39 @@ async def calculate_fastest_path(request: FrontendPathFindingRequest) -> Fastest
 	path_response, _ = await forward_request(pathfinding_url, 'POST', body=payload)
 
 	return path_response
+
+async def calculate_fastest_multipoint_path(request: FrontendMultiPathRequest) -> FastestPathModel:
+	room_data = await fetch_and_validate(RoomListModel, 'rooms')
+	sensor_data = await fetch_and_validate(SensorListModel, 'sensors')
+ 
+	targets = [room['id'] for room in room_data['rooms'] if room['name'] in request.targets] # type: ignore
+	if not targets:
+		raise HTTPException(
+			status_code=400,
+			detail='No valid target rooms found in the request.',
+		)
+  
+	payload = {
+		'source_room': request.source,
+		'target_rooms': targets,
+		'rooms': room_data['rooms'], # type: ignore
+		'sensors': sensor_data['sensors'], # type: ignore
+	}
+ 
+	res =requests.post(
+		f'{PATHFINDING_PATH}/pathfinding/multiple-points',
+		json=payload,
+	)
+	
+	if res.status_code != 200:
+		raise HTTPException(
+			status_code=res.status_code,
+			detail={
+				'error': res.json(),
+				'body': payload if len(payload.__str__()) < 1000 else 'Body too large to display',
+				'method': 'POST',
+				'url': f'{PATHFINDING_PATH}/pathfinding/fastest-multipoint-path',
+			},
+		)
+  
+	return res.json()
