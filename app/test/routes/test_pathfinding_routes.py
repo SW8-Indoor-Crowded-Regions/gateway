@@ -6,6 +6,7 @@ import pytest
 # Import the router from the new structure.
 from app.routes.api_routes import router
 from app.services import pathfinding_service
+from app.utils import room_sensor_fetch
 from app.test.factories.sensor_factory import SensorFactory
 from app.test.factories.room_factory import RoomFactory
 
@@ -88,7 +89,7 @@ def test_sensor_sim_failure(monkeypatch):
 	async def fake_forward_request(*args, **kwargs):
 		raise Exception('Sensor service error')
 
-	monkeypatch.setattr('app.services.pathfinding_service.forward_request', fake_forward_request)
+	monkeypatch.setattr('app.utils.room_sensor_fetch.forward_request', fake_forward_request)
 
 	payload = {'source': 'RoomA', 'target': 'RoomB'}
 	response = client.post('/fastest-path', json=payload)
@@ -101,7 +102,7 @@ def test_invalid_room_data(monkeypatch):
 	async def fake_forward_request(*args, **kwargs):
 		return 'invalid data', 200
 
-	monkeypatch.setattr('app.services.pathfinding_service.forward_request', fake_forward_request)
+	monkeypatch.setattr('app.utils.room_sensor_fetch.forward_request', fake_forward_request)
 
 	payload = {'source': 'RoomA', 'target': 'RoomB'}
 	response = client.post('/fastest-path', json=payload)
@@ -122,7 +123,7 @@ def test_pathfinding_failure(monkeypatch, valid_room_data):
 		elif call_count == 2:
 			raise Exception('Pathfinding error')
 
-	monkeypatch.setattr('app.services.pathfinding_service.forward_request', fake_forward_request)
+	monkeypatch.setattr('app.utils.room_sensor_fetch.forward_request', fake_forward_request)
 
 	payload = {'source': 'RoomA', 'target': 'RoomB'}
 	response = client.post('/fastest-path', json=payload)
@@ -146,7 +147,7 @@ def test_invalid_pathfinding_response(monkeypatch, valid_room_data):
 			# Return an invalid response.
 			return {}, 500
 
-	monkeypatch.setattr('app.services.pathfinding_service.forward_request', fake_forward_request)
+	monkeypatch.setattr('app.utils.room_sensor_fetch.forward_request', fake_forward_request)
 
 	payload = {'source': 'RoomA', 'target': 'RoomB'}
 	response = client.post('/fastest-path', json=payload)
@@ -170,17 +171,18 @@ def test_success(monkeypatch, valid_room_data, valid_sensor_data, valid_fastest_
 		elif call_count == 2:
 			# return sensor data
 			return valid_sensor_data, 200
-		elif call_count == 3:
-			# Return a valid pathfinding response with the expected keys.
-			return valid_fastest_path_response, 200
 		else:
 			raise Exception(f'Unexpected API call with count {call_count}')
 
-	monkeypatch.setattr('app.services.pathfinding_service.forward_request', fake_forward_request)
+	async def fake_forward_request_path(url, method, body=None, params=None):
+		return valid_fastest_path_response, 200
+
+	monkeypatch.setattr('app.utils.room_sensor_fetch.forward_request', fake_forward_request)
+	monkeypatch.setattr('app.services.pathfinding_service.forward_request', fake_forward_request_path)
 
 	payload = {'source': 'RoomA', 'target': 'RoomB'}
 	response = client.post('/fastest-path', json=payload)
-	assert response.status_code == 200
+	assert response.status_code == 200, f'Unexpected status code: {response.json()}'
 	json_response = response.json()
 	assert 'fastest_path' in json_response
 	assert 'distance' in json_response
@@ -197,8 +199,8 @@ def test_missing_pathfinding(monkeypatch):
 
 def test_missing_sensor_sim(monkeypatch):
 	monkeypatch.setattr(
-		'app.services.pathfinding_service.os.getenv',
+		'app.utils.room_sensor_fetch.os.getenv',
 		lambda key, default=None: None if key == 'SENSOR_SIM' else default,
 	)
 	with pytest.raises(RuntimeError, match='SENSOR_SIM not found'):
-		importlib.reload(pathfinding_service)
+		importlib.reload(room_sensor_fetch)

@@ -12,7 +12,7 @@ load_dotenv()
 
 PATHFINDING_PATH = os.getenv('PATHFINDING', 'http://localhost:8001')
 if PATHFINDING_PATH is None:
-	raise RuntimeError('PATHFINDING not found in environment variables')  # pragma: no cover
+	raise RuntimeError('PATHFINDING not found in environment variables')
 
 async def calculate_fastest_path(request: FrontendPathFindingRequest) -> FastestPathModel:
 	room_data = await fetch_and_validate(RoomListModel, 'rooms')
