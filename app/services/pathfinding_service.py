@@ -51,7 +51,7 @@ async def calculate_fastest_multipoint_path(request: FrontendMultiPathRequest) -
 		'sensors': sensor_data['sensors'], # type: ignore
 	}
  
-	res =requests.post(
+	res = requests.post(
 		f'{PATHFINDING_PATH}/pathfinding/multiple-points',
 		json=payload,
 	)

@@ -17,6 +17,18 @@ class FrontendPathFindingRequest(BaseModel):
 class FrontendMultiPathRequest(BaseModel):
 	source: str
 	targets: List[str]
+ 
+	@field_validator('source', mode='before')
+	def check_source(cls, value, info: ValidationInfo):
+		if not value or not value.strip():
+			raise ValueError(f"Field '{info.field_name}' must be a non-empty string.")
+		return value
+
+	@field_validator('targets', mode='before')
+	def check_targets(cls, value, info: ValidationInfo):
+		if not isinstance(value, list) or not all(isinstance(item, str) and item.strip() for item in value):
+			raise ValueError(f"Field '{info.field_name}' must be a non-empty list of non-empty strings.")
+		return value
 
 
 class FastestPathModel(BaseModel):
