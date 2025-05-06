@@ -33,7 +33,7 @@ async def search_artwork(keys: str):
 	}
 
 	try:
-		async with httpx.AsyncClient() as client:
+		async with httpx.AsyncClient(timeout=10.0) as client:
 			response = await client.get('https://api.smk.dk/api/v1/art/search', params=params)
 			response.raise_for_status()
 			data = response.json()
