@@ -77,7 +77,7 @@ def test_pathfinding_invalid_source(room_ids, room_names):
 	BASE_URL = 'http://gateway:8000'
 	room_id1, room_id2, room_id3 = room_ids
 	room_name1, room_name2, room_name3 = room_names
-	
+
 	# Define the request body
 	request_body = {
 		"source": "invalid_source",
@@ -87,9 +87,12 @@ def test_pathfinding_invalid_source(room_ids, room_names):
 	assert response.status_code == 400
 	data = response.json()
 	assert isinstance(data, dict)
-	assert 'error' in data
-	assert 'detail' in data['error']
-	assert data['error']['detail'] == "Room 'invalid_source' in the tour is not valid."
+	assert 'detail' in data
+	assert isinstance(data['detail'], dict)
+	assert 'error' in data['detail']
+	assert isinstance(data['detail']['error'], dict)
+	assert 'detail' in data['detail']['error']
+	assert data['detail']['error']['detail'] == "Room 'invalid_source' in the tour is not valid."
  
 def test_pathfinding_invalid_target(room_ids, room_names):
 	"""Test the /multi-point-path endpoint with invalid target."""
