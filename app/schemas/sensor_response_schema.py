@@ -8,7 +8,7 @@ class SensorModel(BaseModel):
 	rooms: List[str]
 	latitude: float
 	longitude: float
-  is_vertical: bool
+	is_vertical: bool
 
 
 class SensorWithRoomsModel(BaseModel):
