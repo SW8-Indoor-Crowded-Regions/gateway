@@ -36,7 +36,7 @@ def room_names():
 
 
 def test_pathfinding(room_ids, room_names):
-	"""Test the /multiple-points endpoint."""
+	"""Test the /multi-point-path endpoint."""
 
 	BASE_URL = 'http://gateway:8000'
  
@@ -49,7 +49,7 @@ def test_pathfinding(room_ids, room_names):
 		"targets": [room_name2, room_name3],
 	}
 
-	response = requests.post(BASE_URL + '/pathfinding/multiple-points', json=request_body)
+	response = requests.post(BASE_URL + '/multi-point-path', json=request_body)
 	
 
 	data = response.json()
@@ -73,7 +73,7 @@ def test_pathfinding(room_ids, room_names):
  
  
 def test_pathfinding_invalid_source(room_ids, room_names):
-	"""Test the /multiple-points endpoint with invalid source."""
+	"""Test the /multi-point-path endpoint with invalid source."""
 	BASE_URL = 'http://gateway:8000'
 	room_id1, room_id2, room_id3 = room_ids
 	room_name1, room_name2, room_name3 = room_names
@@ -83,7 +83,7 @@ def test_pathfinding_invalid_source(room_ids, room_names):
 		"source": "invalid_source",
 		"targets": [room_name2, room_name3],
 	}
-	response = requests.post(BASE_URL + '/pathfinding/multiple-points', json=request_body)
+	response = requests.post(BASE_URL + '/multi-point-path', json=request_body)
 	assert response.status_code == 400
 	data = response.json()
 	assert isinstance(data, dict)
@@ -91,7 +91,7 @@ def test_pathfinding_invalid_source(room_ids, room_names):
 	assert data['detail']['error'] == "Source room 'invalid_source' is not valid."
  
 def test_pathfinding_invalid_target(room_ids, room_names):
-	"""Test the /multiple-points endpoint with invalid target."""
+	"""Test the /multi-point-path endpoint with invalid target."""
 	BASE_URL = 'http://gateway:8000'
 	room_id1, room_id2, room_id3 = room_ids
 	room_name1, room_name2, room_name3 = room_names
@@ -101,7 +101,7 @@ def test_pathfinding_invalid_target(room_ids, room_names):
 		"source": room_id1,
 		"targets": ["invalid_target"],
 	}
-	response = requests.post(BASE_URL + '/pathfinding/multiple-points', json=request_body)
+	response = requests.post(BASE_URL + '/multi-point-path', json=request_body)
 	assert response.status_code == 400
 	data = response.json()
 	assert isinstance(data, dict)
@@ -109,7 +109,7 @@ def test_pathfinding_invalid_target(room_ids, room_names):
 	assert data['detail']['error'] == "Target room 'invalid_target' is not valid."
  
 def test_pathfinding_empty_source(room_ids, room_names):
-	"""Test the /multiple-points endpoint with empty source."""
+	"""Test the /multi-point-path endpoint with empty source."""
 	BASE_URL = 'http://gateway:8000'
 	room_id1, room_id2, room_id3 = room_ids
 	room_name1, room_name2, room_name3 = room_names
@@ -119,7 +119,7 @@ def test_pathfinding_empty_source(room_ids, room_names):
 		"source": "",
 		"targets": [room_name2, room_name3],
 	}
-	response = requests.post(BASE_URL + '/pathfinding/multiple-points', json=request_body)
+	response = requests.post(BASE_URL + '/multi-point-path', json=request_body)
 	assert response.status_code == 422
 	data = response.json()
 	assert isinstance(data, dict)
@@ -135,7 +135,7 @@ def test_pathfinding_empty_source(room_ids, room_names):
 	}]
  
 def test_pathfinding_no_target(room_ids, room_names):
-	"""Test the /multiple-points endpoint with no target."""
+	"""Test the /multi-point-path endpoint with no target."""
 	BASE_URL = 'http://gateway:8000'
 	room_id1, room_id2, room_id3 = room_ids
 	room_name1, room_name2, room_name3 = room_names
@@ -144,7 +144,8 @@ def test_pathfinding_no_target(room_ids, room_names):
 	request_body = {
 		"source": room_id1,
 	}
-	response = requests.post(BASE_URL + '/pathfinding/multiple-points', json=request_body)
+	print(f"URL: {BASE_URL + '/multi-point-path'}")
+	response = requests.post(BASE_URL + '/multi-point-path', json=request_body)
 	assert response.status_code == 422
 	data = response.json()
 	assert isinstance(data, dict)
