@@ -87,8 +87,9 @@ def test_pathfinding_invalid_source(room_ids, room_names):
 	assert response.status_code == 400
 	data = response.json()
 	assert isinstance(data, dict)
-	assert 'detail' in data
-	assert data['detail'] == "Room 'invalid_source' in the tour is not valid."
+	assert 'error' in data
+	assert 'detail' in data['error']
+	assert data['error']['detail'] == "Room 'invalid_source' in the tour is not valid."
  
 def test_pathfinding_invalid_target(room_ids, room_names):
 	"""Test the /multi-point-path endpoint with invalid target."""
@@ -106,7 +107,7 @@ def test_pathfinding_invalid_target(room_ids, room_names):
 	data = response.json()
 	assert isinstance(data, dict)
 	assert 'detail' in data
-	assert data['detail'] == "Room 'invalid_target' in the tour is not valid."
+	assert data['detail'] == "No valid target rooms found in the request."
  
 def test_pathfinding_empty_source(room_ids, room_names):
 	"""Test the /multi-point-path endpoint with empty source."""
