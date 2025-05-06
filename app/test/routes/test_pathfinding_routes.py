@@ -46,10 +46,55 @@ def valid_sensor_data():
 @pytest.fixture
 def valid_fastest_path_response():
 	return {"fastest_path": [
-  	{"id": "RoomA", "latitude": 55.6887823848, "longitude": 12.57792893289},
-   	{"id": "room1", "latitude": 55.6887823848, "longitude": 12.57792893289},
-   	{"id": "RoomB", "latitude": 55.6887823848, "longitude": 12.57792893289}],
-  	"distance": 10}
+			{
+				"id": "67d935b1d6d3ce76bef2c8e9",
+				"longitude": 16.369509547137667,
+				"latitude": 23.8621854675587,
+				"rooms": [
+					{
+						"id": "67d935add6d3ce76bef2c884",
+						"name": "106",
+						"crowd_factor": 0.3,
+						"occupants": 15,
+						"area": 50.0,
+						"popularity_factor": 0.6133044537264026
+					},
+					{
+						"id": "67d935add6d3ce76bef2c883",
+						"name": "107",
+						"crowd_factor": 0.3,
+						"occupants": 12,
+						"area": 50.0,
+						"popularity_factor": 0.19071676094915843
+					}
+				]
+			},
+			{
+				"id": "67d935b1d6d3ce76bef2c8ea",
+				"longitude": 61.74727469899295,
+				"latitude": 72.87442522121299,
+				"rooms": [
+					{
+						"id": "67d935add6d3ce76bef2c885",
+						"name": "105",
+						"crowd_factor": 0.3,
+						"occupants": 3,
+						"area": 50.0,
+						"popularity_factor": 0.3210981611492981
+					},
+					{
+						"id": "67d935add6d3ce76bef2c884",
+						"name": "106",
+						"crowd_factor": 0.3,
+						"occupants": 15,
+						"area": 50.0,
+						"popularity_factor": 0.6133044537264026
+					}
+				]
+			}
+		],
+		"distance": 0.09
+	}
 
 
 # Test: Blank source value should trigger 400 error.

@@ -1,6 +1,6 @@
 from pydantic import BaseModel, field_validator, ValidationInfo
 from typing import List
-from app.schemas.sensor_response_schema import SensorNoRoomsModel
+from app.schemas.sensor_response_schema import SensorWithRoomsModel
 
 
 class FrontendPathFindingRequest(BaseModel):
@@ -20,5 +20,5 @@ class FrontendMultiPathRequest(BaseModel):
 
 
 class FastestPathModel(BaseModel):
-    fastest_path: List[SensorNoRoomsModel]
+    fastest_path: List[SensorWithRoomsModel]
     distance: float
