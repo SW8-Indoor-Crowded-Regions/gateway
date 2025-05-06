@@ -77,7 +77,7 @@ def test_pathfinding_invalid_target(room_ids):
 	# Define the request body
 	request_body = {
 		"source": room_id1,
-		"targets": "invalid_target",
+		"targets": ["invalid_target"],
 	}
 	response = requests.post(BASE_URL + '/multiple-points', json=request_body)
 	assert response.status_code == 400
