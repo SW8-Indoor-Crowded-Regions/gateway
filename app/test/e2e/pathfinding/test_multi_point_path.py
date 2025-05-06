@@ -49,7 +49,7 @@ def test_pathfinding(room_ids, room_names):
 		"targets": [room_name2, room_name3],
 	}
 
-	response = requests.post(BASE_URL + '/multiple-points', json=request_body)
+	response = requests.post(BASE_URL + '/pathfinding/multiple-points', json=request_body)
 	
 
 	data = response.json()
@@ -83,7 +83,7 @@ def test_pathfinding_invalid_source(room_ids, room_names):
 		"source": "invalid_source",
 		"targets": [room_name2, room_name3],
 	}
-	response = requests.post(BASE_URL + '/multiple-points', json=request_body)
+	response = requests.post(BASE_URL + '/pathfinding/multiple-points', json=request_body)
 	assert response.status_code == 400
 	data = response.json()
 	assert isinstance(data, dict)
@@ -101,7 +101,7 @@ def test_pathfinding_invalid_target(room_ids, room_names):
 		"source": room_id1,
 		"targets": ["invalid_target"],
 	}
-	response = requests.post(BASE_URL + '/multiple-points', json=request_body)
+	response = requests.post(BASE_URL + '/pathfinding/multiple-points', json=request_body)
 	assert response.status_code == 400
 	data = response.json()
 	assert isinstance(data, dict)
@@ -119,7 +119,7 @@ def test_pathfinding_empty_source(room_ids, room_names):
 		"source": "",
 		"targets": [room_name2, room_name3],
 	}
-	response = requests.post(BASE_URL + '/multiple-points', json=request_body)
+	response = requests.post(BASE_URL + '/pathfinding/multiple-points', json=request_body)
 	assert response.status_code == 422
 	data = response.json()
 	assert isinstance(data, dict)
@@ -144,7 +144,7 @@ def test_pathfinding_no_target(room_ids, room_names):
 	request_body = {
 		"source": room_id1,
 	}
-	response = requests.post(BASE_URL + '/multiple-points', json=request_body)
+	response = requests.post(BASE_URL + '/pathfinding/multiple-points', json=request_body)
 	assert response.status_code == 422
 	data = response.json()
 	assert isinstance(data, dict)
