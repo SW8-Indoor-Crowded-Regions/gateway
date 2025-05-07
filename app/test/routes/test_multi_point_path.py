@@ -74,7 +74,8 @@ def valid_fastest_path_response():
 						"area": 50.0,
 						"popularity_factor": 0.19071676094915843
 					}
-				]
+				],
+				"is_vertical": True
 			},
 			{
 				"id": "67d935b1d6d3ce76bef2c8ea",
@@ -97,7 +98,8 @@ def valid_fastest_path_response():
 						"area": 50.0,
 						"popularity_factor": 0.6133044537264026
 					}
-				]
+				],
+				"is_vertical": False
 			}
 		],
 		"distance": 0.09
