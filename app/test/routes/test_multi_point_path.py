@@ -15,6 +15,13 @@ app = FastAPI()
 app.include_router(router)
 client = TestClient(app)
 
+class MockResponse:
+    def __init__(self, json_data, status_code):
+        self._json_data = json_data
+        self.status_code = status_code
+
+    def json(self):
+        return self._json_data
 
 @pytest.fixture(autouse=True)
 def mock_env(monkeypatch):
@@ -99,8 +106,8 @@ def valid_fastest_path_response():
 
 # Test: Blank source value should trigger 400 error.
 def test_blank_source():
-	payload = {'source': '   ', 'target': 'RoomA'}
-	response = client.post('/fastest-path', json=payload)
+	payload = {'source': '   ', 'targets': ['RoomA']}
+	response = client.post('/multi-point-path', json=payload)
 	assert response.status_code == 422
 	assert response.json()['detail'] == [
 		{
@@ -113,18 +120,18 @@ def test_blank_source():
 	]
 
 
-# Test: Blank target value should trigger 400 error.
+# Test: Blank targets value should trigger 400 error.
 def test_blank_target():
-	payload = {'source': 'RoomA', 'target': '   '}
-	response = client.post('/fastest-path', json=payload)
+	payload = {'source': 'RoomA', 'targets': '   '}
+	response = client.post('/multi-point-path', json=payload)
 	assert response.status_code == 422
 	assert response.json()['detail'] == [
 		{
 			'ctx': {'error': {}},
 			'input': '   ',
 			'type': 'value_error',
-			'loc': ['body', 'target'],
-			'msg': "Value error, Field 'target' must be a non-empty string.",
+			'loc': ['body', 'targets'],
+			'msg': "Value error, Field 'targets' must be a non-empty list of non-empty strings.",
 		}
 	]
 
@@ -136,8 +143,8 @@ def test_sensor_sim_failure(monkeypatch):
 
 	monkeypatch.setattr('app.utils.room_sensor_fetch.forward_request', fake_forward_request)
 
-	payload = {'source': 'RoomA', 'target': 'RoomB'}
-	response = client.post('/fastest-path', json=payload)
+	payload = {'source': 'RoomA', 'targets': ['RoomB']}
+	response = client.post('/multi-point-path', json=payload)
 	assert response.status_code == 500
 	assert 'Failed to retrieve room data' in response.json()['detail']
 
@@ -149,8 +156,8 @@ def test_invalid_room_data(monkeypatch):
 
 	monkeypatch.setattr('app.utils.room_sensor_fetch.forward_request', fake_forward_request)
 
-	payload = {'source': 'RoomA', 'target': 'RoomB'}
-	response = client.post('/fastest-path', json=payload)
+	payload = {'source': 'RoomA', 'targets': ['RoomB']}
+	response = client.post('/multi-point-path', json=payload)
 	assert response.status_code == 500
 	assert 'Invalid or empty room data' in response.json()['detail']
 
@@ -170,8 +177,8 @@ def test_pathfinding_failure(monkeypatch, valid_room_data):
 
 	monkeypatch.setattr('app.utils.room_sensor_fetch.forward_request', fake_forward_request)
 
-	payload = {'source': 'RoomA', 'target': 'RoomB'}
-	response = client.post('/fastest-path', json=payload)
+	payload = {'source': 'RoomA', 'targets': ['RoomB']}
+	response = client.post('/multi-point-path', json=payload)
 	assert response.status_code == 500
 	assert (
 		'Failed to retrieve sensor data from sensor simulation service' in response.json()['detail']
@@ -194,8 +201,8 @@ def test_invalid_pathfinding_response(monkeypatch, valid_room_data):
 
 	monkeypatch.setattr('app.utils.room_sensor_fetch.forward_request', fake_forward_request)
 
-	payload = {'source': 'RoomA', 'target': 'RoomB'}
-	response = client.post('/fastest-path', json=payload)
+	payload = {'source': 'RoomA', 'targets': ['RoomB']}
+	response = client.post('/multi-point-path', json=payload)
 	assert response.status_code == 500
 	assert (
 		'Invalid or empty sensor data received from sensor simulation service'
@@ -219,15 +226,23 @@ def test_success(monkeypatch, valid_room_data, valid_sensor_data, valid_fastest_
 		else:
 			raise Exception(f'Unexpected API call with count {call_count}')
 
-	async def fake_forward_request_path(url, method, body=None, params=None):
-		return valid_fastest_path_response, 200
+	def fake_requests_post(url, json=None, **kwargs):
+		return MockResponse(valid_fastest_path_response, 200)
 
 	monkeypatch.setattr('app.utils.room_sensor_fetch.forward_request', fake_forward_request)
-	monkeypatch.setattr('app.services.pathfinding_service.forward_request', fake_forward_request_path)
+	monkeypatch.setattr('app.services.pathfinding_service.requests.post', fake_requests_post)
 
-	payload = {'source': 'RoomA', 'target': 'RoomB'}
-	response = client.post('/fastest-path', json=payload)
-	assert response.status_code == 200, f'Unexpected status code: {response.json()}'
+	if len(valid_room_data.get("rooms", [])) < 2:
+		pytest.skip("Not enough rooms in valid_room_data for this test")
+		
+	payload = {
+		'source': valid_room_data["rooms"][0]["name"],
+		'targets': [valid_room_data["rooms"][1]["name"]]
+	}
+
+	response = client.post('/multi-point-path', json=payload)
+
+	assert response.status_code == 200
 	json_response = response.json()
 	assert 'fastest_path' in json_response
 	assert 'distance' in json_response
