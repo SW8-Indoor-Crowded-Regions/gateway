@@ -23,6 +23,7 @@ class RoomFromPathfindingModel(BaseModel):
 	occupants: int
 	area: float
 	popularity_factor: float
+	floor: int
 
 
 class RoomListModel(BaseModel):
