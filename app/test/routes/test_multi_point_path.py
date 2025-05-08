@@ -64,7 +64,8 @@ def valid_fastest_path_response():
 						"crowd_factor": 0.3,
 						"occupants": 15,
 						"area": 50.0,
-						"popularity_factor": 0.6133044537264026
+						"popularity_factor": 0.6133044537264026,
+						"floor": 1
 					},
 					{
 						"id": "67d935add6d3ce76bef2c883",
@@ -72,7 +73,8 @@ def valid_fastest_path_response():
 						"crowd_factor": 0.3,
 						"occupants": 12,
 						"area": 50.0,
-						"popularity_factor": 0.19071676094915843
+						"popularity_factor": 0.19071676094915843,
+						"floor": 1
 					}
 				],
 				"is_vertical": True
@@ -88,7 +90,8 @@ def valid_fastest_path_response():
 						"crowd_factor": 0.3,
 						"occupants": 3,
 						"area": 50.0,
-						"popularity_factor": 0.3210981611492981
+						"popularity_factor": 0.3210981611492981,
+						"floor": 1
 					},
 					{
 						"id": "67d935add6d3ce76bef2c884",
@@ -96,7 +99,8 @@ def valid_fastest_path_response():
 						"crowd_factor": 0.3,
 						"occupants": 15,
 						"area": 50.0,
-						"popularity_factor": 0.6133044537264026
+						"popularity_factor": 0.6133044537264026,
+						"floor": 1
 					}
 				],
 				"is_vertical": False
