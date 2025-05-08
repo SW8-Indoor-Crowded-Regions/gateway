@@ -16,6 +16,15 @@ class RoomModel(BaseModel):
 	floor: int
 	borders: List[List[float]]
 
+class RoomFromPathfindingModel(BaseModel):
+	id: str
+	name: str
+	crowd_factor: float
+	occupants: int
+	area: float
+	popularity_factor: float
+	floor: int
+
 
 class RoomListModel(BaseModel):
 	rooms: List[RoomModel]
