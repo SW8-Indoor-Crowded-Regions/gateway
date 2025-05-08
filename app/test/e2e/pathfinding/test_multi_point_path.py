@@ -1,6 +1,5 @@
 import pytest
 import requests
-import logging
 
 @pytest.fixture(scope='module')
 def room_ids():
