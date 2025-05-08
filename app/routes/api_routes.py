@@ -15,7 +15,10 @@ router.include_router(sensor_router, prefix='/sensors', tags=['sensors'])
 router.include_router(filter_router, prefix='/filters', tags=['filters'])
 
 
-@router.post('/fastest-path')
+@router.post('/fastest-path',
+      	description='Calculate the fastest path between two points.',
+			response_model=FastestPathModel,
+      )
 async def get_fastest_path(request: FrontendPathFindingRequest):
 	return await calculate_fastest_path(request)
 
