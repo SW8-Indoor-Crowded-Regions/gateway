@@ -16,6 +16,7 @@ class SensorWithRoomsModel(BaseModel):
 	rooms: List[RoomFromPathfindingModel]
 	latitude: float
 	longitude: float
+	is_vertical: bool
 
     
 class SensorListModel(BaseModel):
