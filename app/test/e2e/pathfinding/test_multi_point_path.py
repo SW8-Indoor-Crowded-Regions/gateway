@@ -50,11 +50,9 @@ def test_pathfinding(room_ids, room_names):
 	}
 
 	response = requests.post(BASE_URL + '/multi-point-path', json=request_body)
-	
 
+	assert response.status_code == 200, f"Expected status code 200, got {response.status_code}, response: {response.text}"
 	data = response.json()
-	logging.error(f"Response: {data}")
-	assert response.status_code == 200
 	assert isinstance(data, dict)
 	assert 'fastest_path' in data
 	assert isinstance(data['fastest_path'], list)
